@@ -1,0 +1,13 @@
+cd /home/ev22335-a/Gen_Phen_GAT_Project && python - <<'PY'
+import json
+from pathlib import Path
+p = Path('pipeline/notebooks/1. Variants.ipynb')
+data = json.loads(p.read_text())
+for i, cell in enumerate(data['cells'], 1):
+    if cell['cell_type']=='code':
+        src = ''.join(cell['source'])
+        print('====CELL', i, '====')
+        print(src)
+
+
+'.*(coronary heart disease|chd).*'

@@ -1,0 +1,110 @@
+# Configuration for the Snakemake pipeline rules.
+# - set `trait_pattern` to a regex matching study traits (case-insensitive)
+# - list any local catalogue CSV files under `catalogues`
+# - toggle exclusion phrases by setting the boolean to true/false
+
+# variants:
+#   trait_pattern: '.*(type (2|ii)|t2d) diabetes.*'
+#   catalogues_to_include: [data/afr_gwas_catalogue_t2d.csv]
+#   output_dir: 'output/variants'
+#   exclusion_phrases:
+#     "medication for": true
+#     "self-reported": true
+#     "do not have": true
+#     "ever had diabetes": true
+#     "gestational diabetes": true
+#     "adjusted": true
+#   print_selected_studies_only: false
+
+variants:
+  traits:
+    - name: type_2_diabetes
+      id: HP:0005978
+      trait_pattern: '.*(type (2|ii)|t2d) diabetes.*'
+      catalogues_to_include: [data/datasets/T2D/AFR_gwas_t2d.csv, data/datasets/T2D/GME_gwas_t2d.csv]
+      exclusion_phrases: ["medication for", "self-reported", "do not have", "ever had diabetes", "gestational diabetes", "adjusted"]
+      print_selected_studies_only: false     
+      output_dir: output/variants/type_2_diabetes
+
+    # - name: obesity
+    #   id: HP:0001513
+    #   trait_pattern: '.*obesity.*'
+    #   catalogues_to_include: []
+    #   exclusion_phrases: ["medication for", "self-reported", "do not have", "ever had diabetes", "gestational diabetes", "adjusted"]
+    #   print_selected_studies_only: true      
+    #   output_dir: output/variants/obesity
+
+    # - name: hypertension
+    #   id: HP:0000822
+    #   trait_pattern: '.*hypertension.*'
+    #   catalogues_to_include: []
+    #   exclusion_phrases: ["medication for", "self-reported", "do not have", "ever had diabetes", "gestational diabetes", "adjusted"]
+    #   print_selected_studies_only: true      
+    #   output_dir: output/variants/hypertension
+
+    # - name: hyperglycemia
+    #   id: HP:0003074
+    #   trait_pattern: '.*hyperglycemia.*'
+    #   catalogues_to_include: []
+    #   exclusion_phrases: ["medication for", "self-reported", "do not have", "ever had diabetes", "gestational diabetes", "adjusted"]
+    #   print_selected_studies_only: true      
+    #   output_dir: output/variants/hyperglycemia
+
+tissues:
+  output_dir: 'output/tissues'
+
+vgt_edges:
+  output_dir: 'output/vgt_edges'
+
+gene_gene:
+  output_dir: 'output/gene_gene'
+  cache_dir: 'data/string_cache'
+
+gene_sources_and_list:
+  output_dir: 'output/gene_sources_and_list'
+
+gene_features:
+  output_dir: 'output/gene_features'
+  vocab_size: 75
+
+gene_features_imputation:
+  output_dir: 'output/gene_features'
+
+variant_gene_edges:
+  output_dir: 'output/variant_gene_edges'
+
+gene_tissue_edges:
+    output_dir: 'output/gene_tissue_edges'
+
+gene_pathway:
+  output_dir: 'output/gene_pathway'
+
+gene_phenotype_edges:
+  include_other_clinical_phenotypes: false
+  output_dir: 'output/gene_phenotype'
+
+phenotype_features:
+  phenotypes_prevalence_file: 'data/phenotypes_prevalence.csv'
+  output_dir: 'output/phenotype_features'
+
+phenotype_phenotype_edges:
+  output_dir: 'output/phenotype_features'
+
+drug_gene_edges:
+  output_dir: 'output/drugs_nodes_and_edges'
+
+drug_phenotype_edges:
+  phenotype_code_file: 'data/phenotypes_prevalence.csv'
+  output_dir: 'output/drug_phenotype_edges'
+
+tissue_phenotype_edges:
+  enrichment_file_path: data/enrichments
+  enrichment_map:
+    [
+      "HP:0005978-FUMA_public_job604009", 
+      "HP:0001513-FUMA_public_job680502",
+      "HP:0000822-FUMA_public_job604009",
+      "HP:0003074-FUMA_public_job604009"
+    ]
+  output_dir: output/tissue_phenotype_edges
+

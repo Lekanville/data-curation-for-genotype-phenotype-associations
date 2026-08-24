@@ -1,0 +1,38 @@
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+
+# Python bytecode and local environments
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+env/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Jupyter and Snakemake runtime files
+.ipynb_checkpoints/
+.snakemake/
+
+# Data files and directories
+data/
+
+# Pipeline-generated results
+output/
+
+# Notebook
+notebooks/
+*.ipynb
+
+# Downloaded/cache data; source data under data/ remains trackable
+data/string_cache/
+
+# Logs and local tool state
+*.log
+.DS_Store
+Thumbs.db
+.vscode/

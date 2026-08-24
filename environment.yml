@@ -1,0 +1,21 @@
+name: gat_data_pipeline
+channels: 
+  - conda-forge
+  - bioconda
+dependencies:
+  - loguru=0.6.0
+  - pip
+  - python-dotenv
+  - pyyaml=6.0.3
+  - scipy=1.9.3
+  - seaborn=0.12.2
+  - snakemake=7.20.0
+  - pip:
+    - chembl-webresource-client=0.10.9
+    - numpy=2.4.6
+    - mygene=3.2.2
+    - pandas=3.0.3
+    - pyarrow=24.0.0
+    - rdkit=2026.3.3
+    - scikit-learn=1.9.0
+    - tqdm=4.68.4
