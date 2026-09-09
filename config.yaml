@@ -108,3 +108,7 @@ tissue_phenotype_edges:
     ]
   output_dir: output/tissue_phenotype_edges
 
+phenotype_mapping:
+  phenotype_phenotype_edges_ldsc_file: 'data/phenotype_phenotype_edges_ldsc.csv'
+  output_dir: 'output/phenotype_mapping'
+

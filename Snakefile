@@ -41,6 +41,7 @@ phenotype_phenotype_edges_cfg = cfg.get('phenotype_phenotype_edges', {})
 drug_gene_edges_cfg = cfg.get('drug_gene_edges', {})
 drug_phenotype_edges_cfg = cfg.get('drug_phenotype_edges', {})
 tissue_phenotype_edges_cfg = cfg.get('tissue_phenotype_edges', {})
+phenotype_mapping_cfg = cfg.get('phenotype_mapping', {})
 
 # 1. Extract configuration values for variants
 variant_traits = variants_cfg.get("traits", [])
@@ -188,13 +189,19 @@ drug_phenotype_edges_output_dir = drug_phenotype_edges_cfg.get("output_dir", "ou
 if not Path(drug_phenotype_edges_output_dir).is_absolute():
     drug_phenotype_edges_output_dir = str((pipeline_dir / drug_phenotype_edges_output_dir).resolve())
 
-# 15. Extract configuration values for drug-phenotype edges
+# 16. Extract configuration values for tissue-phenotype edges
 tissue_enrichment_map = tissue_phenotype_edges_cfg.get("enrichment_map", [])
 tissue_enrichment_file_path = tissue_phenotype_edges_cfg.get("enrichment_file_path", [])
 tissue_enrichment_map_args = "--tissue-enrichment-map " + "::".join(str(x) for x in tissue_enrichment_map)
 tissue_phenotype_edges_output_dir = tissue_phenotype_edges_cfg.get("output_dir", "output/tissue_phenotype_edges")
 if not Path(tissue_phenotype_edges_output_dir).is_absolute():
     tissue_phenotype_edges_output_dir = str((pipeline_dir /tissue_phenotype_edges_output_dir).resolve())
+
+# 17. Extract configuration values for phenotype mapping
+phenotype_phenotype_edges_ldsc_file = phenotype_mapping_cfg.get("phenotype_phenotype_edges_ldsc_file", "data/phenotype_phenotype_edges_ldsc.csv")
+phenotype_mapping_output_dir = phenotype_mapping_cfg.get("output_dir", "output/phenotype_mapping")
+if not Path(phenotype_mapping_output_dir).is_absolute():
+    phenotype_mapping_output_dir = str((pipeline_dir / phenotype_mapping_output_dir).resolve())
  
 
 # Build command-line arguments for the variants script
@@ -226,6 +233,7 @@ phenotype_phenotype_script_path = pipeline_dir / "code" / "phenotype_phenotype.p
 drug_gene_edges_script_path = pipeline_dir / "code" / "drug_gene.py"
 drug_phenotype_edges_script_path = pipeline_dir / "code" / "drug_phenotype.py"
 tissue_phenotype_edges_script_path = pipeline_dir / "code" / "tissue_phenotype.py"
+phenotype_mapping_script_path = pipeline_dir / "code" / "phenotype_combination.py"
 
 # Define Snakemake rules for the pipeline
 rule variants:
@@ -432,7 +440,7 @@ rule build_phenotype_features:
     output:
         phenotype_features=f"{phenotype_features_output_dir}/phenotype_features.csv",
         ancestry_node=f"{phenotype_features_output_dir}/ancestry_nodes.csv",
-        anceestry_phenotype_edges=f"{phenotype_features_output_dir}/ancestry_phenotype_edges.csv"
+        ancestry_phenotype_edges=f"{phenotype_features_output_dir}/ancestry_phenotype_edges.csv"
     params:
         script=phenotype_features_script_path,
         out_dir=phenotype_features_output_dir
@@ -521,4 +529,46 @@ rule build_tissue_phenotype_edges:
             --output-dir {params.out_dir}
         """
 
-
+rule build_phenotype_mapping:
+    input:
+        phenotype_features=f"{phenotype_features_output_dir}/phenotype_features.csv",
+        phenotypes_with_prevalence=phenotypes_prevalence_file,
+        side_effect_names_and_codes=f"{drug_phenotype_edges_output_dir}/side_effect_names_and_codes.csv",
+        drug_causes_phenotype=f"{drug_phenotype_edges_output_dir}/drug_causes_phenotype_edges.csv",
+        drug_treats_phenotype=f"{drug_phenotype_edges_output_dir}/drug_treats_phenotype_edges.csv",
+        gene_phenotype_edges=f"{gene_phenotype_output_dir}/gene_phenotype_edges.csv",
+        ancestry_phenotype_edges=f"{phenotype_features_output_dir}/ancestry_phenotype_edges.csv",
+        phenotype_phenotype_edges_lin=f"{phenotype_phenotype_edges_output_dir}/phenotype_phenotype_edges.csv",
+        phenotype_phenotype_edges_ldsc=phenotype_phenotype_edges_ldsc_file,
+        tissue_phenotype_edges=f"{tissue_phenotype_edges_output_dir}/tissue_phenotype_edges.csv",
+        variant_phenotype_edges=f"{variant_output_dir}/vp_edges_refined.csv"
+    output:
+        phenotype_features=f"{phenotype_mapping_output_dir}/phenotype_features_cui.csv",
+        ancestry_phenotype_edges=f"{phenotype_mapping_output_dir}/ancestry_phenotype_edges_cui.csv",
+        drug_treats_phenotype=f"{phenotype_mapping_output_dir}/drug_treats_phenotype_edges_cui.csv",
+        drug_causes_phenotype=f"{phenotype_mapping_output_dir}/drug_causes_phenotype_edges_cui.csv",
+        gene_phenotype_edges=f"{phenotype_mapping_output_dir}/gene_phenotype_edges_cui.csv",
+        phenotype_phenotype_edges_lin=f"{phenotype_mapping_output_dir}/phenotype_phenotype_edges_lin_cui.csv",
+        phenotype_phenotype_edges_ldsc=f"{phenotype_mapping_output_dir}/phenotype_phenotype_edges_ldsc_cui.csv",
+        tissue_phenotype_edges=f"{phenotype_mapping_output_dir}/tissue_phenotype_edges_cui.csv",
+        variant_phenotype_edges=f"{phenotype_mapping_output_dir}/variant_phenotype_edges_cui.csv",
+        clinical_outcomes_final=f"{phenotype_mapping_output_dir}/clinical_outcomes_final_cui.csv"
+    params:
+        script=phenotype_mapping_script_path,
+        out_dir=phenotype_mapping_output_dir
+    shell:
+        """
+        python {params.script} \
+            --phenotype-features {input.phenotype_features} \
+            --phenotypes-with-prevalence {input.phenotypes_with_prevalence} \
+            --side-effect-names-and-codes {input.side_effect_names_and_codes} \
+            --drug-causes-phenotype {input.drug_causes_phenotype} \
+            --drug-treats-phenotype {input.drug_treats_phenotype} \
+            --ancestry-phenotype-edges {input.ancestry_phenotype_edges} \
+            --gene-phenotype-edges {input.gene_phenotype_edges} \
+            --phenotype-phenotype-edges-lin {input.phenotype_phenotype_edges_lin} \
+            --phenotype-phenotype-edges-ldsc {input.phenotype_phenotype_edges_ldsc} \
+            --tissue-phenotype-edges {input.tissue_phenotype_edges} \
+            --variant-phenotype-edges {input.variant_phenotype_edges} \
+            --output-dir {params.out_dir}
+        """

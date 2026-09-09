@@ -219,7 +219,7 @@ def build_master_tissue_phenotype_edges(
     tissue_phenotype_edges_dir = output_dir / "tissue_phenotype_edges.csv"
 
     # Save the phenotye_phenotype edges data to CSV files
-    df_tissue_phenotype_edges.to_csv(tissue_phenotype_edges_dir)
+    df_tissue_phenotype_edges.to_csv(tissue_phenotype_edges_dir, index=False)
     return tissue_phenotype_edges_dir
 
 

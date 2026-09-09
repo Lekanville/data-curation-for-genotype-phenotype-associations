@@ -1,4 +1,3 @@
-import io
 import requests
 import argparse
 import numpy as np
