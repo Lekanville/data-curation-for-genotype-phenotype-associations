@@ -67,7 +67,11 @@ for trait_cfg in variant_traits:
         catalogue_args = "--catalogues " + "::".join(str(x) for x in variant_catalogues)
 
     exclude_args = " ".join(f'--exclude-phrase "{phrase}"' for phrase in exclusion_phrases if phrase)
-    print_only_flag = "--print-selected-studies-only" if trait_cfg.get("print_selected_studies_only", False) else ""
+    # Per-trait setting overrides the global "variants.print_selected_studies_only" default
+    print_selected_studies_only = trait_cfg.get(
+        "print_selected_studies_only", variants_cfg.get("print_selected_studies_only", False)
+    )
+    print_only_flag = "--print-selected-studies-only" if print_selected_studies_only else ""
 
     variant_trait_params.append({
         "name": trait_name,

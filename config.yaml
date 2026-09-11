@@ -17,14 +17,23 @@
 #   print_selected_studies_only: false
 
 variants:
+  # Applies to all traits below unless a trait sets its own print_selected_studies_only
+  print_selected_studies_only: true
   traits:
     - name: type_2_diabetes
       id: HP:0005978
       trait_pattern: '.*(type (2|ii)|t2d) diabetes.*'
       catalogues_to_include: [data/datasets/T2D/AFR_gwas_t2d.csv, data/datasets/T2D/GME_gwas_t2d.csv]
       exclusion_phrases: ["medication for", "self-reported", "do not have", "ever had diabetes", "gestational diabetes", "adjusted"]
-      print_selected_studies_only: false     
       output_dir: output/variants/type_2_diabetes
+
+
+    - name: alzheimers_disease
+      id: HP:0002511
+      trait_pattern: '.*alzheimers disease.*'
+      catalogues_to_include: [data/datasets/AD/AFR_gwas_ad.csv, data/datasets/AD/GME_gwas_ad.csv]
+      exclusion_phrases: ["medication for", "self-reported", "do not have", "ever had disease", "adjusted"]
+      output_dir: output/variants/alzheimers_disease
 
     # - name: obesity
     #   id: HP:0001513
