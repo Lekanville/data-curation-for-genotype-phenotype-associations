@@ -1,8 +1,9 @@
 import os
-import shutil
 import yaml
-from pathlib import Path
+import shutil
 import warnings
+import pandas as pd
+from pathlib import Path
 
 # Suppress the specific pkg_resources deprecation warning
 warnings.filterwarnings("ignore", category=UserWarning, module="stopit")
@@ -97,7 +98,13 @@ if not variant_trait_params:
         "output_dir": str((pipeline_dir / variants_cfg.get("output_dir", "output/variants/default")).resolve()),
     })
 
-variant_output_dir = variant_trait_params[0]["output_dir"] if variant_trait_params else str((pipeline_dir / "output/variants").resolve())
+variant_trait_output_dirs = [p["output_dir"] for p in variant_trait_params] or [str((pipeline_dir / "output/variants").resolve())]
+
+# Combined dir merges every trait's outputs so downstream rules aren't limited to just the first trait
+variant_output_dir_combined = variants_cfg.get("combined_output_dir", "output/variants/combined")
+if not Path(variant_output_dir_combined).is_absolute():
+    variant_output_dir_combined = str((pipeline_dir / variant_output_dir_combined).resolve())
+
 variant_shell_commands = []
 for cfg in variant_trait_params:
     cmd = [f"python {pipeline_dir / 'code' / 'variants.py'}"]
@@ -242,7 +249,7 @@ phenotype_mapping_script_path = pipeline_dir / "code" / "phenotype_combination.p
 # Define Snakemake rules for the pipeline
 rule variants:
     output:
-        directory(variant_output_dir),
+        [directory(d) for d in variant_trait_output_dirs],
     params:
         script=str(variants_script_path),
         shell_script=variant_shell_script,
@@ -250,6 +257,36 @@ rule variants:
         """
         {params.shell_script}
         """
+
+rule combine_variant_outputs:
+    input:
+        variant_node=[f"{d}/variant_node.csv" for d in variant_trait_output_dirs],
+        vg_edges=[f"{d}/vg_edges.csv" for d in variant_trait_output_dirs],
+        vp_edges=[f"{d}/vp_edges_refined.csv" for d in variant_trait_output_dirs],
+    output:
+        variant_node=f"{variant_output_dir_combined}/variant_node.csv",
+        vg_edges=f"{variant_output_dir_combined}/vg_edges.csv",
+        vp_edges=f"{variant_output_dir_combined}/vp_edges_refined.csv",
+    run:
+        # Key columns that identify a "duplicate" row per combined file
+        dedup_keys = {
+            output.variant_node: ["rsid"],
+            output.vg_edges: ["Source_Variant_rsid", "Target_Gene_ID"],
+            output.vp_edges: ["rsid", "target_ancestry", "target_phenotype"],
+        }
+        for out_path, in_paths in (
+            (output.variant_node, input.variant_node),
+            (output.vg_edges, input.vg_edges),
+            (output.vp_edges, input.vp_edges),
+        ):
+            combined = pd.concat([pd.read_csv(p) for p in in_paths], ignore_index=True)
+            # These GWAS-catalogue columns aren't part of the variant_node schema
+            combined = combined.drop(columns=["STRONGEST SNP-RISK ALLELE", "SNPS"], errors="ignore")
+            # Prefer the most complete row when the same key appears in more than one trait
+            completeness = combined.notna().sum(axis=1)
+            combined = combined.loc[completeness.sort_values(ascending=False).index]
+            combined = combined.drop_duplicates(subset=dedup_keys[out_path], keep="first")
+            combined.to_csv(out_path, index=False)
 
 rule tissues:
     output:
@@ -265,7 +302,7 @@ rule tissues:
 
 rule vgt_edges:
     input:
-        variant_node=f"{variant_output_dir}/variant_node.csv",
+        variant_node=f"{variant_output_dir_combined}/variant_node.csv",
         tissue_node=f"{tissues_output_dir}/tissue_node.csv"
     output:
         vgt_edges=f"{vgt_output_dir}/variant_tissue_edges_final.csv"
@@ -282,7 +319,7 @@ rule vgt_edges:
 
 rule gene_gene_edges:
     input:
-        vg_edges=f"{variant_output_dir}/vg_edges.csv",
+        vg_edges=f"{variant_output_dir_combined}/vg_edges.csv",
         vgt_edges=f"{vgt_output_dir}/variant_tissue_edges_final.csv",
     output:
         gene_gene_edges=f"{gene_gene_output_dir}/df_ppi_final.csv",
@@ -304,7 +341,7 @@ rule gene_sources_and_list:
     input:
         modifiers_and_vgt_gene_list=f"{gene_gene_output_dir}/modifiers_and_VGT_gene_list.csv",
         ppi=f"{gene_gene_output_dir}/df_ppi_final.csv",
-        vg_edges=f"{variant_output_dir}/vg_edges.csv",
+        vg_edges=f"{variant_output_dir_combined}/vg_edges.csv",
     output:
         gene_list=f"{gene_sources_output_dir}/df_gene_collapsed.csv",
     params:
@@ -340,7 +377,7 @@ rule gene_features:
 rule gene_features_imputation:
     input:
         unique_gene_list=f"{gene_sources_output_dir}/df_gene_collapsed.csv",
-        vg_edges=f"{variant_output_dir}/vg_edges.csv",
+        vg_edges=f"{variant_output_dir_combined}/vg_edges.csv",
         vgt_edges=f"{vgt_output_dir}/variant_tissue_edges_final.csv",
         gene_features_all=f"{gene_features_output_dir}/gene_features_all.csv"
     output:
@@ -364,7 +401,7 @@ rule gene_features_imputation:
 rule variant_gene_edges:
     input:
         unique_gene_node=f"{gene_features_imputation_output_dir}/genes_node_dedup_mapped.csv",
-        vg_edges=f"{variant_output_dir}/vg_edges.csv",
+        vg_edges=f"{variant_output_dir_combined}/vg_edges.csv",
         variant_tissue_edges=f"{vgt_output_dir}/variant_tissue_edges_final.csv",
     output:
         vg_edges_all=f"{variant_gene_edges_output_dir}/df_vg_master_all.csv",
@@ -418,7 +455,7 @@ rule gene_pathway_edges:
 rule gene_phenotype_edges:
     input:
         unique_gene_node=f"{gene_features_imputation_output_dir}/genes_node_dedup_mapped.csv",
-        variant_phenotype_edges=f"{variant_output_dir}/vp_edges_refined.csv",
+        variant_phenotype_edges=f"{variant_output_dir_combined}/vp_edges_refined.csv",
         variant_gene_edges=f"{variant_gene_edges_output_dir}/df_vg_master_clean.csv",
     output:
         gene_phenotype_edges=f"{gene_phenotype_output_dir}/gene_phenotype_edges.csv",
@@ -545,7 +582,7 @@ rule build_phenotype_mapping:
         phenotype_phenotype_edges_lin=f"{phenotype_phenotype_edges_output_dir}/phenotype_phenotype_edges.csv",
         phenotype_phenotype_edges_ldsc=phenotype_phenotype_edges_ldsc_file,
         tissue_phenotype_edges=f"{tissue_phenotype_edges_output_dir}/tissue_phenotype_edges.csv",
-        variant_phenotype_edges=f"{variant_output_dir}/vp_edges_refined.csv"
+        variant_phenotype_edges=f"{variant_output_dir_combined}/vp_edges_refined.csv"
     output:
         phenotype_features=f"{phenotype_mapping_output_dir}/phenotype_features_cui.csv",
         ancestry_phenotype_edges=f"{phenotype_mapping_output_dir}/ancestry_phenotype_edges_cui.csv",

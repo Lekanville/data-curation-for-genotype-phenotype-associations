@@ -18,7 +18,9 @@
 
 variants:
   # Applies to all traits below unless a trait sets its own print_selected_studies_only
-  print_selected_studies_only: true
+  print_selected_studies_only: false
+  # Merged variant_node/vg_edges/vp_edges_refined outputs across all traits, used by downstream rules
+  combined_output_dir: output/variants/combined
   traits:
     - name: type_2_diabetes
       id: HP:0005978
@@ -30,8 +32,8 @@ variants:
 
     - name: alzheimers_disease
       id: HP:0002511
-      trait_pattern: '.*alzheimers disease.*'
-      catalogues_to_include: [data/datasets/AD/AFR_gwas_ad.csv, data/datasets/AD/GME_gwas_ad.csv]
+      trait_pattern: '.*alzheimer''s disease.*'
+      catalogues_to_include: [data/datasets/Alzheimer/AMR_gwas_alz.csv, data/datasets/Alzheimer/EAS_gwas_alz.csv]
       exclusion_phrases: ["medication for", "self-reported", "do not have", "ever had disease", "adjusted"]
       output_dir: output/variants/alzheimers_disease
 

@@ -100,7 +100,7 @@ def get_gene_pl_gl_with_entrez(gene_features_dict):
     df_processed_features['pLI_Score'] = pli_scores
     df_processed_features['pLI_Imputed_Flag'] = pli_imputed_flags
     df_processed_features['Gene_Length'] = gene_lengths
-    df_processed_features['Gene_Length_Imputted_Flag'] = gene_lengths_imputed_flags
+    df_processed_features['Gene_Length_Imputed_Flag'] = gene_lengths_imputed_flags
     
     # 4. Handle NaN/missing values for Gene_Length
     # Impute missing lengths with the median of the found lengths
@@ -514,7 +514,7 @@ def get_hpatss(df_current):
     df_current['Expression_Specificity_Score'] = df_current['Gene_Symbol'].map(specificity_map)
     
     #Imputation for missing Expression Specificity Score
-    df_current["Ex_Sp_Flag_Imputted"] = df_current['Expression_Specificity_Score'].isna().astype(int)
+    df_current["Ex_Sp_Flag_Imputed"] = df_current['Expression_Specificity_Score'].isna().astype(int)
     median_score = df_current['Expression_Specificity_Score'].median()
     median_score_safe = median_score if not np.isnan(median_score) else 1.0
     
@@ -524,7 +524,7 @@ def get_hpatss(df_current):
     
     print(f"All Gene Node Features (X_G) finalized.")
     print(f"Median Specificity Score used for imputation: {median_score:.4f}")
-    print(df_current[['Entrez_ID', 'Gene_Symbol', 'Expression_Specificity_Score', "Ex_Sp_Flag_Imputted"]].head())
+    print(df_current[['Entrez_ID', 'Gene_Symbol', 'Expression_Specificity_Score', "Ex_Sp_Flag_Imputed"]].head())
 
     return (df_current)
 
