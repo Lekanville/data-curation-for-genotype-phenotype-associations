@@ -123,3 +123,6 @@ phenotype_mapping:
   phenotype_phenotype_edges_ldsc_file: 'data/phenotype_phenotype_edges_ldsc.csv'
   output_dir: 'output/phenotype_mapping'
 
+phenotype_phenotype_edges_all:
+  output_dir: 'output/phenotype_mapping'
+

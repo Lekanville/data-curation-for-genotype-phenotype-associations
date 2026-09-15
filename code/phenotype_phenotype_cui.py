@@ -117,7 +117,7 @@ def build_phenotype_phenotype_edges(
 
     # Save the drug_phenotype (causes) edges data to CSV files
     output_dir.mkdir(parents=True, exist_ok=True)
-    phenotype_phenotype_edges_dir = output_dir / "phenotype_phenotype_edges.csv"
+    phenotype_phenotype_edges_dir = output_dir / "phenotype_phenotype_lin_cui_all.csv"
 
     # Save the phenotye_phenotype edges data to CSV files
     df_phenotype_phenoype_edges.to_csv(phenotype_phenotype_edges_dir, index=False)
@@ -126,8 +126,8 @@ def build_phenotype_phenotype_edges(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Get phenotype-phenotype edge data")
-    parser.add_argument("--phenotype-features", default="phenotype_features.csv", help="Path to the phenotype features CSV")
-    parser.add_argument("--output-dir", default="output/phenotype_features", help="Directory for the phenotype-phenotype edges outputs")
+    parser.add_argument("--phenotype-features", default="clinical_outcomes.csv", help="Path to the phenotype features CSV")
+    parser.add_argument("--output-dir", default="output/clinical_outcomes_edges", help="Directory for the phenotype-phenotype edges outputs")
     args = parser.parse_args()
 
     output_path = build_phenotype_phenotype_edges(

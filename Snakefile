@@ -43,6 +43,7 @@ drug_gene_edges_cfg = cfg.get('drug_gene_edges', {})
 drug_phenotype_edges_cfg = cfg.get('drug_phenotype_edges', {})
 tissue_phenotype_edges_cfg = cfg.get('tissue_phenotype_edges', {})
 phenotype_mapping_cfg = cfg.get('phenotype_mapping', {})
+phenotype_phenotype_edges_all_cfg = cfg.get('phenotype_phenotype_edges_all', {})
 
 # 1. Extract configuration values for variants
 variant_traits = variants_cfg.get("traits", [])
@@ -213,6 +214,11 @@ phenotype_phenotype_edges_ldsc_file = phenotype_mapping_cfg.get("phenotype_pheno
 phenotype_mapping_output_dir = phenotype_mapping_cfg.get("output_dir", "output/phenotype_mapping")
 if not Path(phenotype_mapping_output_dir).is_absolute():
     phenotype_mapping_output_dir = str((pipeline_dir / phenotype_mapping_output_dir).resolve())
+
+#18. Extract configuration values for phenotype-phenotype edges all
+phenotype_phenotype_edges_all_output_dir = phenotype_phenotype_edges_all_cfg.get("output_dir", "output/phenotype_mapping")
+if not Path(phenotype_phenotype_edges_all_output_dir).is_absolute():
+    phenotype_phenotype_edges_all_output_dir = str((pipeline_dir / phenotype_phenotype_edges_all_output_dir).resolve())
  
 
 # Build command-line arguments for the variants script
@@ -245,6 +251,7 @@ drug_gene_edges_script_path = pipeline_dir / "code" / "drug_gene.py"
 drug_phenotype_edges_script_path = pipeline_dir / "code" / "drug_phenotype.py"
 tissue_phenotype_edges_script_path = pipeline_dir / "code" / "tissue_phenotype.py"
 phenotype_mapping_script_path = pipeline_dir / "code" / "phenotype_combination.py"
+phenotype_phenotype_edges_all_script_path = pipeline_dir / "code" / "phenotype_phenotype_cui.py"
 
 # Define Snakemake rules for the pipeline
 rule variants:
@@ -611,5 +618,20 @@ rule build_phenotype_mapping:
             --phenotype-phenotype-edges-ldsc {input.phenotype_phenotype_edges_ldsc} \
             --tissue-phenotype-edges {input.tissue_phenotype_edges} \
             --variant-phenotype-edges {input.variant_phenotype_edges} \
+            --output-dir {params.out_dir}
+        """
+
+rule phenotype_phenotype_edges:
+    input:
+        phenotype_features=f"{phenotype_mapping_output_dir}/phenotype_features_cui.csv",
+    output:
+        phenotype_phenotype_edges=f"{phenotype_mapping_output_dir}/phenotype_phenotype_lin_cui_all.csv"
+    params:
+        script=phenotype_phenotype_edges_all_script_path,
+        out_dir=phenotype_mapping_output_dir
+    shell:
+        """
+        python {params.script} \
+            --phenotype-features {input.phenotype_features} \
             --output-dir {params.out_dir}
         """
