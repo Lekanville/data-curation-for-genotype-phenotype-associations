@@ -621,7 +621,7 @@ rule build_phenotype_mapping:
             --output-dir {params.out_dir}
         """
 
-rule phenotype_phenotype_edges:
+rule phenotype_phenotype_edges_cui_all:
     input:
         phenotype_features=f"{phenotype_mapping_output_dir}/phenotype_features_cui.csv",
     output:

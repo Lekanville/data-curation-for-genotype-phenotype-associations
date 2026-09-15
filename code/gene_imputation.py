@@ -185,10 +185,10 @@ def gene_features_imputation(unique_gene_list: Path, vg_edges: Path, variant_tis
 
     # 2. CALCULATE MEDIANS FROM "REAL" DATA ONLY
     median_pli        = genes_node_with_ids[genes_node_with_ids['pLI_Imputed_Flag'] == False]["pLI_Score"].median()
-    median_geneLength = genes_node_with_ids[genes_node_with_ids['Gene_Length_Imputted_Flag'] == False]["Gene_Length"].median()
+    median_geneLength = genes_node_with_ids[genes_node_with_ids['Gene_Length_Imputed_Flag'] == False]["Gene_Length"].median()
     median_molWeight  = genes_node_with_ids[genes_node_with_ids['M_W_Imputed_Flag'] == 0]["Molecular_Weight"].median()
     median_ppi        = genes_node_with_ids[genes_node_with_ids['PPI_Count_Imputed_Flag'] == 0]["PPI_Count"].median()
-    median_exSp       = genes_node_with_ids[genes_node_with_ids['Ex_Sp_Flag_Imputted'] == 0]["Expression_Specificity_Score"].median()
+    median_exSp       = genes_node_with_ids[genes_node_with_ids['Ex_Sp_Flag_Imputed'] == 0]["Expression_Specificity_Score"].median()
 
     # FOR PROTEIN FEATURES (pLI, MW, and PPI)
     # 3. APPLY MEDIAN IMPUTATION FOR MISSING CODING DATA (Coding Only for Protein features)
@@ -203,15 +203,15 @@ def gene_features_imputation(unique_gene_list: Path, vg_edges: Path, variant_tis
 
     # FOR STRUCTURAL FEATURES (Length and Specificity)
     # 5. APPLY MEDIAN IMPUTATION FOR MISSING STRUCTURAL FEATURES IN ALL TYPES OF DATA (CODING AND NON-CODING)
-    genes_node_with_ids.loc[(genes_node_with_ids['Gene_Length_Imputted_Flag'] == True) | (genes_node_with_ids['Gene_Length_Imputted_Flag'].isnull()), 'Gene_Length'] = median_geneLength
-    genes_node_with_ids.loc[(genes_node_with_ids['Ex_Sp_Flag_Imputted'] == 1) | (genes_node_with_ids['Ex_Sp_Flag_Imputted'].isnull()), 'Expression_Specificity_Score'] = median_exSp
+    genes_node_with_ids.loc[(genes_node_with_ids['Gene_Length_Imputed_Flag'] == True) | (genes_node_with_ids['Gene_Length_Imputed_Flag'].isnull()), 'Gene_Length'] = median_geneLength
+    genes_node_with_ids.loc[(genes_node_with_ids['Ex_Sp_Flag_Imputed'] == 1) | (genes_node_with_ids['Ex_Sp_Flag_Imputed'].isnull()), 'Expression_Specificity_Score'] = median_exSp
 
     # 6. RECONCILE FLAGS (Fixed syntax errors)
     genes_node_with_ids.loc[genes_node_with_ids['pLI_Imputed_Flag'].isnull(), 'pLI_Imputed_Flag'] = True
-    genes_node_with_ids.loc[genes_node_with_ids['Gene_Length_Imputted_Flag'].isnull(), 'Gene_Length_Imputted_Flag'] = True
+    genes_node_with_ids.loc[genes_node_with_ids['Gene_Length_Imputed_Flag'].isnull(), 'Gene_Length_Imputed_Flag'] = True
     genes_node_with_ids.loc[genes_node_with_ids['M_W_Imputed_Flag'].isnull(), 'M_W_Imputed_Flag'] = 1
     genes_node_with_ids.loc[genes_node_with_ids['PPI_Count_Imputed_Flag'].isnull(), 'PPI_Count_Imputed_Flag'] = 1
-    genes_node_with_ids.loc[genes_node_with_ids['Ex_Sp_Flag_Imputted'].isnull(), 'Ex_Sp_Flag_Imputted'] = 1
+    genes_node_with_ids.loc[genes_node_with_ids['Ex_Sp_Flag_Imputed'].isnull(), 'Ex_Sp_Flag_Imputed'] = 1
 
 
     # Imputation for Gene ontology terms
@@ -236,8 +236,8 @@ def gene_features_imputation(unique_gene_list: Path, vg_edges: Path, variant_tis
 
     # Rearrange the columns
     init = ["Gene_Symbol", "Entrez_ID", "Gencode_ID", "Ensembl_ID", "pLI_Score", "pLI_Imputed_Flag", "Gene_Length", 
-        "Gene_Length_Imputted_Flag", "Molecular_Weight", "M_W_Imputed_Flag", "GO_Data_Missing_Flag"]
-    end = ["PPI_Count_Imputed_Flag", "PPI_Count", "Expression_Specificity_Score", "Ex_Sp_Flag_Imputted"]
+        "Gene_Length_Imputed_Flag", "Molecular_Weight", "M_W_Imputed_Flag", "GO_Data_Missing_Flag"]
+    end = ["PPI_Count_Imputed_Flag", "PPI_Count", "Expression_Specificity_Score", "Ex_Sp_Flag_Imputed"]
 
     all_cols = init + all_go_cols + end
     genes_node_full = genes_node_with_ids[all_cols]
@@ -296,7 +296,7 @@ def gene_features_imputation(unique_gene_list: Path, vg_edges: Path, variant_tis
     flags = [i for i in cols if "Flag" in i]
 
     genes_node_full["pLI_Imputed_Flag"] = genes_node_full["pLI_Imputed_Flag"].astype(float)
-    genes_node_full["Gene_Length_Imputted_Flag"] = genes_node_full["Gene_Length_Imputted_Flag"].astype(float)
+    genes_node_full["Gene_Length_Imputed_Flag"] = genes_node_full["Gene_Length_Imputed_Flag"].astype(float)
     genes_node_full["flag_sum"] = genes_node_full[flags].sum(axis=1)
 
     # Remove duplicates based on Ensembl_ID, keeping the row with the lowest flag_sum (i.e., the most complete data)

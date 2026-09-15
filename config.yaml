@@ -3,19 +3,6 @@
 # - list any local catalogue CSV files under `catalogues`
 # - toggle exclusion phrases by setting the boolean to true/false
 
-# variants:
-#   trait_pattern: '.*(type (2|ii)|t2d) diabetes.*'
-#   catalogues_to_include: [data/afr_gwas_catalogue_t2d.csv]
-#   output_dir: 'output/variants'
-#   exclusion_phrases:
-#     "medication for": true
-#     "self-reported": true
-#     "do not have": true
-#     "ever had diabetes": true
-#     "gestational diabetes": true
-#     "adjusted": true
-#   print_selected_studies_only: false
-
 variants:
   # Applies to all traits below unless a trait sets its own print_selected_studies_only
   print_selected_studies_only: false
@@ -115,7 +102,8 @@ tissue_phenotype_edges:
       "HP:0005978-FUMA_public_job604009", 
       "HP:0001513-FUMA_public_job680502",
       "HP:0000822-FUMA_public_job604009",
-      "HP:0003074-FUMA_public_job604009"
+      "HP:0003074-FUMA_public_job604009",
+      "HP:0002511-FUMA_public_job723799"
     ]
   output_dir: output/tissue_phenotype_edges
 

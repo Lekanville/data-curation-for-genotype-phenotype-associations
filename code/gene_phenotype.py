@@ -67,32 +67,52 @@ def build_gene_phenotype(
         df_gp_clinical['weight'] = 1.0
 
     # 2. Derive weights from your Variant-Phenotype (GWAS) data
-    # We use -log10(p) to turn small p-values into large edge weights
-    # Assuming 'df_vp_edges' is your GWAS table
-    df_vp_edges['neg_log_p'] = -np.log10(df_vp_edges['p'].replace(0, 1e-300))
+    # We use -log10(p) to turn small p-values into large edge weights.
+    # Keep the 1e-300 safeguard for exact zeros, but normalize within each phenotype
+    # so we do not incorrectly divide by the max of only one trait.
+    df_vp_edges = df_vp_edges.copy()
+    df_vp_edges['p_safe'] = df_vp_edges['p'].replace(0, 1e-300)
+    df_vp_edges['neg_log_p'] = -np.log10(df_vp_edges['p_safe'])
 
-    # Normalize the weights between 0.4 and 0.8 to reflect 'Statistical Association'
-    max_p = df_vp_edges['neg_log_p'].max()
-    df_vp_edges['stat_weight'] = 0.4 + (0.4 * (df_vp_edges['neg_log_p'] / max_p))
+    max_neg_log_p_per_trait = df_vp_edges.groupby('trait')['neg_log_p'].transform('max')
+    max_neg_log_p_per_trait = max_neg_log_p_per_trait.replace(0, 1e-300)
+    df_vp_edges['stat_weight'] = 0.4 + 0.4 * (df_vp_edges['neg_log_p'] / max_neg_log_p_per_trait)
 
     # 3. Collapse Variant weights to Gene Symbols
-    # Note: You must merge your GWAS data with your Gene mapping table first
-    df_gwas_gp = pd.merge(df_vp_edges, df_vg_master, left_on='rsid', right_on="source")
+    # Build the trait-to-HPO map directly from the variant-phenotype table so new phenotypes are handled automatically.
+    trait_to_hpo = (
+        df_vp_edges[['trait', 'target_phenotype']]
+        .drop_duplicates()
+        .dropna(subset=['target_phenotype'])
+        .set_index('trait')['target_phenotype']
+        .to_dict()
+    )
+    df_vp_edges['trait_name'] = df_vp_edges['trait'].fillna('Unknown')
+    df_vp_edges['target'] = df_vp_edges['trait_name'].map(trait_to_hpo)
+    df_vp_edges['target'] = df_vp_edges['target'].fillna(df_vp_edges.get('target_phenotype', pd.Series([np.nan] * len(df_vp_edges))))
 
-    # Take the maximum statistical weight if multiple SNPs hit the same gene
-    df_gp_statistical = df_gwas_gp.groupby(['target', 'trait']).agg({
-        'stat_weight': 'max'
-    }).reset_index()
+    # Merge with the gene mapping table on rsid; gene targets are kept as source genes.
+    df_vg_master_clean = df_vg_master.rename(columns={'source': 'rsid', 'target': 'gene_symbol'})
+    df_gwas_gp = pd.merge(df_vp_edges, df_vg_master_clean, on='rsid', how='inner')
 
-    df_gp_statistical.rename(columns={"target": "source"}, inplace = True)
+    # Take the maximum statistical weight if multiple SNPs hit the same gene for the same phenotype.
+    df_gp_statistical = (
+        df_gwas_gp.groupby(['target', 'gene_symbol'], as_index=False)
+        .agg(weight=('stat_weight', 'max'))
+    )
+    df_gp_statistical['phenotype_label'] = df_gp_statistical['target'].map(
+        {v: k for k, v in trait_to_hpo.items()}
+    ).fillna('Unknown')
+    df_gp_statistical = df_gp_statistical.rename(columns={'gene_symbol': 'source'})
+    df_gp_statistical = df_gp_statistical[['source', 'target', 'phenotype_label', 'weight']]
 
     # 4. Final Integration
-    # Map 'Type 2 diabetes' trait to the HPO term for T2D (HP:0005978)
-    df_gp_statistical['target'] = 'HP:0005978'
-    df_gp_statistical.columns = ['source', 'phenotype_label', 'weight', 'target']
-
+    # Clinical edges already have their own HPO target; statistical edges keep the trait-mapped HPO target.
     if include_clinical_phenotypes == True:
-        df_final_gp = pd.concat([df_gp_clinical, df_gp_statistical[['source', 'target', 'phenotype_label', 'weight']]])
+        df_final_gp = pd.concat([
+            df_gp_clinical,
+            df_gp_statistical[['source', 'target', 'phenotype_label', 'weight']]
+        ])
     else:
         df_final_gp = df_gp_statistical[['source', 'target', 'phenotype_label', 'weight']]
 
