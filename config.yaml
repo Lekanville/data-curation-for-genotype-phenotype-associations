@@ -16,13 +16,12 @@ variants:
       exclusion_phrases: ["medication for", "self-reported", "do not have", "ever had diabetes", "gestational diabetes", "adjusted"]
       output_dir: output/variants/type_2_diabetes
 
-
-    - name: alzheimers_disease
-      id: HP:0002511
-      trait_pattern: '.*alzheimer''s disease.*'
-      catalogues_to_include: [data/datasets/Alzheimer/AMR_gwas_alz.csv, data/datasets/Alzheimer/EAS_gwas_alz.csv]
-      exclusion_phrases: ["medication for", "self-reported", "do not have", "ever had disease", "adjusted"]
-      output_dir: output/variants/alzheimers_disease
+    # - name: alzheimers_disease
+    #   id: HP:0002511
+    #   trait_pattern: '.*alzheimer''s disease.*'
+    #   catalogues_to_include: [data/datasets/Alzheimer/AMR_gwas_alz.csv, data/datasets/Alzheimer/EAS_gwas_alz.csv]
+    #   exclusion_phrases: ["medication for", "self-reported", "do not have", "ever had disease", "adjusted"]
+    #   output_dir: output/variants/alzheimers_disease
 
     # - name: obesity
     #   id: HP:0001513

@@ -418,7 +418,7 @@ def build_variant_and_edge_tables(variant_object: pd.DataFrame, target_phenotype
 
 def save_tables(tables: dict, output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
-    tables["variant_node"].to_csv(output_dir / "variant_node.csv")
+    tables["variant_node"].to_csv(output_dir / "variant_nodes.csv")
     tables["variant_phenotype_edges"].to_csv(output_dir / "vp_edges_refined.csv", index=False)
     tables["variant_gene_edges"].to_csv(output_dir / "vg_edges.csv", index=False)
     tables["gene_nodes"].to_csv(output_dir / "genes.csv", index=False)

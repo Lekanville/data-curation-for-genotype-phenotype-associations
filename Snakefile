@@ -267,24 +267,28 @@ rule variants:
 
 rule combine_variant_outputs:
     input:
-        variant_node=[f"{d}/variant_node.csv" for d in variant_trait_output_dirs],
+        variant_node=[f"{d}/variant_nodes.csv" for d in variant_trait_output_dirs],
         vg_edges=[f"{d}/vg_edges.csv" for d in variant_trait_output_dirs],
         vp_edges=[f"{d}/vp_edges_refined.csv" for d in variant_trait_output_dirs],
+        va_edges=[f"{d}/va_final.csv" for d in variant_trait_output_dirs],
     output:
-        variant_node=f"{variant_output_dir_combined}/variant_node.csv",
+        variant_node=f"{variant_output_dir_combined}/variant_nodes.csv",
         vg_edges=f"{variant_output_dir_combined}/vg_edges.csv",
         vp_edges=f"{variant_output_dir_combined}/vp_edges_refined.csv",
+        va_edges=f"{variant_output_dir_combined}/va_final.csv",
     run:
         # Key columns that identify a "duplicate" row per combined file
         dedup_keys = {
             output.variant_node: ["rsid"],
             output.vg_edges: ["Source_Variant_rsid", "Target_Gene_ID"],
-            output.vp_edges: ["rsid", "target_ancestry", "target_phenotype"],
+            output.vp_edges: ["rsid", "target_phenotype", "magnitude"],
+            output.va_edges: ["rsid", "target_ancestry", "eaf"],
         }
         for out_path, in_paths in (
             (output.variant_node, input.variant_node),
             (output.vg_edges, input.vg_edges),
             (output.vp_edges, input.vp_edges),
+            (output.va_edges, input.va_edges),
         ):
             combined = pd.concat([pd.read_csv(p) for p in in_paths], ignore_index=True)
             # These GWAS-catalogue columns aren't part of the variant_node schema
@@ -309,7 +313,7 @@ rule tissues:
 
 rule vgt_edges:
     input:
-        variant_node=f"{variant_output_dir_combined}/variant_node.csv",
+        variant_node=f"{variant_output_dir_combined}/variant_nodes.csv",
         tissue_node=f"{tissues_output_dir}/tissue_node.csv"
     output:
         vgt_edges=f"{vgt_output_dir}/variant_tissue_edges_final.csv"

@@ -26,7 +26,7 @@ def build_tissue_nodes() -> pd.DataFrame:
 
 def save_tissue_nodes(df_tissue_nodes: pd.DataFrame, output_dir: Path) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / "tissue_node.csv"
+    output_path = output_dir / "tissue_nodes.csv"
     df_tissue_nodes.to_csv(output_path)
     return output_path
 
