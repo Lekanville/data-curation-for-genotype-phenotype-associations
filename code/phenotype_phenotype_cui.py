@@ -117,7 +117,7 @@ def build_phenotype_phenotype_edges(
 
     # Save the drug_phenotype (causes) edges data to CSV files
     output_dir.mkdir(parents=True, exist_ok=True)
-    phenotype_phenotype_edges_dir = output_dir / "phenotype_phenotype_lin_cui_all.csv"
+    phenotype_phenotype_edges_dir = output_dir / "phenotype_phenotype_edges_lin_cui_all.csv"
 
     # Save the phenotye_phenotype edges data to CSV files
     df_phenotype_phenoype_edges.to_csv(phenotype_phenotype_edges_dir, index=False)
