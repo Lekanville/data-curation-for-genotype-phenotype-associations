@@ -629,7 +629,7 @@ rule phenotype_phenotype_edges_cui_all:
     input:
         phenotype_features=f"{phenotype_mapping_output_dir}/phenotype_features_cui.csv",
     output:
-        phenotype_phenotype_edges=f"{phenotype_mapping_output_dir}/phenotype_phenotype_lin_cui_all.csv"
+        phenotype_phenotype_edges=f"{phenotype_mapping_output_dir}/phenotype_phenotype_edges_lin_cui_all.csv"
     params:
         script=phenotype_phenotype_edges_all_script_path,
         out_dir=phenotype_mapping_output_dir
