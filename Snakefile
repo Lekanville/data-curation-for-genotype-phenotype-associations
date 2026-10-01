@@ -220,6 +220,7 @@ phenotype_phenotype_edges_all_output_dir = phenotype_phenotype_edges_all_cfg.get
 if not Path(phenotype_phenotype_edges_all_output_dir).is_absolute():
     phenotype_phenotype_edges_all_output_dir = str((pipeline_dir / phenotype_phenotype_edges_all_output_dir).resolve())
 
+phenotype_phenotype_edges_all_similarity_threshold = float(phenotype_phenotype_edges_all_cfg.get("similarity_threshold", 0.6))
 phenotype_phenotype_edges_all_limit_top_k = bool(phenotype_phenotype_edges_all_cfg.get("limit_top_k", False))
 phenotype_phenotype_edges_all_top_k = int(phenotype_phenotype_edges_all_cfg.get("top_k", 10))
 if phenotype_phenotype_edges_all_limit_top_k:
@@ -228,6 +229,8 @@ if phenotype_phenotype_edges_all_limit_top_k:
 else:
     phenotype_phenotype_edges_all_top_k_arg = ""
     phenotype_phenotype_edges_all_limit_flag = ""
+
+phenotype_phenotype_edges_all_similarity_threshold_arg = f"--similarity-threshold {phenotype_phenotype_edges_all_similarity_threshold}"
 
 # Build command-line arguments for the variants script
 # catalogue_args = ""
@@ -641,6 +644,7 @@ rule phenotype_phenotype_edges_cui_all:
     params:
         script=phenotype_phenotype_edges_all_script_path,
         out_dir=phenotype_phenotype_edges_all_output_dir,
+        similarity_threshold_arg=phenotype_phenotype_edges_all_similarity_threshold_arg,
         limit_top_k_flag=phenotype_phenotype_edges_all_limit_flag,
         top_k_arg=phenotype_phenotype_edges_all_top_k_arg
     shell:
@@ -648,5 +652,6 @@ rule phenotype_phenotype_edges_cui_all:
         python {params.script} \
             --phenotype-features {input.phenotype_features} \
             --output-dir {params.out_dir} \
+            {params.similarity_threshold_arg} \
             {params.limit_top_k_flag} {params.top_k_arg}
         """
