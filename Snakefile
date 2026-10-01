@@ -219,7 +219,15 @@ if not Path(phenotype_mapping_output_dir).is_absolute():
 phenotype_phenotype_edges_all_output_dir = phenotype_phenotype_edges_all_cfg.get("output_dir", "output/phenotype_mapping")
 if not Path(phenotype_phenotype_edges_all_output_dir).is_absolute():
     phenotype_phenotype_edges_all_output_dir = str((pipeline_dir / phenotype_phenotype_edges_all_output_dir).resolve())
- 
+
+phenotype_phenotype_edges_all_limit_top_k = bool(phenotype_phenotype_edges_all_cfg.get("limit_top_k", False))
+phenotype_phenotype_edges_all_top_k = int(phenotype_phenotype_edges_all_cfg.get("top_k", 10))
+if phenotype_phenotype_edges_all_limit_top_k:
+    phenotype_phenotype_edges_all_top_k_arg = f"--top-k {phenotype_phenotype_edges_all_top_k}"
+    phenotype_phenotype_edges_all_limit_flag = "--limit-top-k"
+else:
+    phenotype_phenotype_edges_all_top_k_arg = ""
+    phenotype_phenotype_edges_all_limit_flag = ""
 
 # Build command-line arguments for the variants script
 # catalogue_args = ""
@@ -629,13 +637,16 @@ rule phenotype_phenotype_edges_cui_all:
     input:
         phenotype_features=f"{phenotype_mapping_output_dir}/clinical_outcomes_final_cui.csv",
     output:
-        phenotype_phenotype_edges=f"{phenotype_mapping_output_dir}/phenotype_phenotype_edges_lin_cui_all.csv"
+        phenotype_phenotype_edges=f"{phenotype_phenotype_edges_all_output_dir}/phenotype_phenotype_edges_lin_cui_all.csv"
     params:
         script=phenotype_phenotype_edges_all_script_path,
-        out_dir=phenotype_mapping_output_dir
+        out_dir=phenotype_phenotype_edges_all_output_dir,
+        limit_top_k_flag=phenotype_phenotype_edges_all_limit_flag,
+        top_k_arg=phenotype_phenotype_edges_all_top_k_arg
     shell:
         """
         python {params.script} \
             --phenotype-features {input.phenotype_features} \
-            --output-dir {params.out_dir}
+            --output-dir {params.out_dir} \
+            {params.limit_top_k_flag} {params.top_k_arg}
         """

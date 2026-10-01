@@ -1,6 +1,7 @@
 import os
 import urllib
 import argparse
+from collections import defaultdict
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -73,9 +74,41 @@ def calculate_intrinsic_lin(term_a, term_b, TOTAL_TERMS, onto, descendant_counts
     # Lin's formula using intrinsic IC
     return (2.0 * ic_mica) / (ic_a + ic_b)
 
+def _apply_top_k_cap(edge_records, top_k: int):
+    """Limit each phenotype to its strongest K outgoing neighbors."""
+    if top_k is None or top_k <= 0:
+        return edge_records
+
+    adjacency = defaultdict(list)
+    for record in edge_records:
+        source = record["source_hpo"]
+        target = record["target_hpo"]
+        score = float(record["lin_similarity"])
+        adjacency[source].append((target, score))
+
+    kept_pairs = set()
+    for source, neighbors in adjacency.items():
+        top_neighbors = sorted(neighbors, key=lambda item: (-item[1], item[0]))[:top_k]
+        for target, score in top_neighbors:
+            kept_pairs.add((source, target, round(score, 4)))
+
+    pruned_records = [
+        {
+            "source_hpo": source,
+            "target_hpo": target,
+            "lin_similarity": score,
+        }
+        for source, target, score in sorted(kept_pairs, key=lambda item: (item[0], item[1]))
+    ]
+    return pruned_records
+
+
 def build_phenotype_phenotype_edges(
         phenotype_features: Path,
         output_dir: Path,
+        similarity_threshold: float = 0.6,
+        limit_top_k: bool = False,
+        top_k: int | None = None,
     ) -> Path:
     
     # Load the phenotype features
@@ -95,7 +128,7 @@ def build_phenotype_phenotype_edges(
             descendants = set(term.subclasses(with_self=True))
             descendant_counts[term.id] = len(descendants)
 
-    edge_records = []
+    pair_scores = {}
 
     # Loop through all pairs to build the flat edge list
     for i in range(len(target_phenotypes)):
@@ -106,12 +139,20 @@ def build_phenotype_phenotype_edges(
             score = calculate_intrinsic_lin(p1, p2, TOTAL_TERMS, onto, descendant_counts)
         
             # We only save edges with some semantic relationship to keep the graph crisp
-            if score > 0.05: 
-                edge_records.append({
-                    "source_hpo": p1,
-                    "target_hpo": p2,
-                    "lin_similarity": round(score, 4)
-            })
+            if score > similarity_threshold:
+                pair_key = tuple(sorted((p1, p2)))
+                existing_score = pair_scores.get(pair_key)
+                if existing_score is None or score > existing_score:
+                    pair_scores[pair_key] = score
+
+    edge_records = [{
+        "source_hpo": p1,
+        "target_hpo": p2,
+        "lin_similarity": round(score, 4),
+    } for (p1, p2), score in pair_scores.items()]
+
+    if limit_top_k and top_k is not None and top_k > 0:
+        edge_records = _apply_top_k_cap(edge_records, top_k)
 
     df_phenotype_phenoype_edges = pd.DataFrame(edge_records)
 
@@ -128,11 +169,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Get phenotype-phenotype edge data")
     parser.add_argument("--phenotype-features", default="clinical_outcomes.csv", help="Path to the phenotype features CSV")
     parser.add_argument("--output-dir", default="output/clinical_outcomes_edges", help="Directory for the phenotype-phenotype edges outputs")
+    parser.add_argument("--similarity-threshold", type=float, default=0.6, help="Only retain edges above this Lin similarity score")
+    parser.add_argument("--limit-top-k", action="store_true", help="Keep only the strongest K neighbors per phenotype")
+    parser.add_argument("--top-k", type=int, default=10, help="Maximum number of neighbors to keep for each phenotype when --limit-top-k is enabled")
     args = parser.parse_args()
 
     output_path = build_phenotype_phenotype_edges(
         phenotype_features=Path(args.phenotype_features),
         output_dir=Path(args.output_dir),
+        similarity_threshold=args.similarity_threshold,
+        limit_top_k=args.limit_top_k,
+        top_k=args.top_k,
     )
 
     print(f"Wrote the phenotype-phenotype edges data to {output_path}")
