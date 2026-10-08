@@ -21,8 +21,12 @@ The pipeline stages include:
 - [Configuration](#configuration)
 - [Running the pipeline](#running-the-pipeline)
 - [Understanding the outputs](#understanding-the-outputs)
+- [Data expectations](#data-expectations)
 - [Common issues](#common-issues)
 - [Project structure](#project-structure)
+- [Recommended workflow](#recommended-workflow)
+- [License](#license)
+- [Maintainer notes](#maintainer-notes)
 
 ---
 
