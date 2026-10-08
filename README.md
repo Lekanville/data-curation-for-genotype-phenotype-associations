@@ -132,8 +132,14 @@ variants:
 - Add or remove traits in `variants.traits` to control which diseases are processed.
 - `trait_pattern` is a regex used to match study descriptions.
 - `catalogues_to_include` can point to local CSV files in data/datasets/.... This is optional and can be used to add missing ancestry-specific GWAS data for particular phenotypes when OpenGWAS coverage is incomplete. You can leave it as an empty list when it is not needed.
-- `output_dir` is created automatically by the pipeline.
-- `print_selected_studies_only` can be set to limit printed study selection outputs during filtering.
+- `output_dir` would be created by the pipeline.
+- `print_selected_studies_only` can be set to print selected study OpenGWAS studies only. This will allow for inspection of selected studied in orderto decide if additional GWAS studies should be manually included using `catalogues_to_include`.
+- `gene_phenotype_edges.include_other_clinical_phenotypes` can be set to `true` to add direct clinical outcomes that genes are associated with, beyond the standard curated phenotype relationships. When set to `false`, the pipeline keeps the default narrower set of gene–phenotype edges.
+
+```yaml
+gene_phenotype_edges:
+  include_other_clinical_phenotypes: false
+```
 
 ---
 
