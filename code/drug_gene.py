@@ -18,7 +18,9 @@ def normalize_chembl_id(value):
         return np.nan
     value = str(value).strip()
     if value.startswith("CHEMBL:"):
-        return "CHEMBL" + value.split("CHEMBL:", 1)[1]
+        value = "CHEMBL" + value.split("CHEMBL:", 1)[1]
+    while value.startswith("CHEMBL") and value[6:].startswith("CHEMBL"):
+        value = value[6:]
     if value.startswith("CHEMBL"):
         return value
     return np.nan
@@ -225,29 +227,25 @@ def build_drug_gene_data(unique_gene_node: Path, output_dir: Path) -> Tuple[Path
 
     # The drugs and genes
     df_drug_gene = df_encoded.copy()
-    drugs = df_drug_gene["source"].unique()
+    df_drug_gene["source"] = df_drug_gene["source"].map(normalize_chembl_id)
+    drugs = df_drug_gene["source"].dropna().unique()
     # genes = df_drug_gene["target"].unique()
 
     # --- STEP 1: CLEAN PREFIXES ---
     chembl_ids_ready = []
     for drug_name in drugs:
-        normalized = normalize_chembl_id(drug_name)
-        if isinstance(normalized, str) and normalized.startswith("CHEMBL"):
-            chembl_ids_ready.append(normalized)
+        if isinstance(drug_name, str) and drug_name.startswith("CHEMBL"):
+            chembl_ids_ready.append(drug_name)
     chembl_ids_ready = list(dict.fromkeys(chembl_ids_ready))
 
-    names_to_search = [str(d).strip() for d in drugs if not str(normalize_chembl_id(d)).startswith("CHEMBL")]
+    names_to_search = [str(d).strip() for d in drugs if not str(d).startswith("CHEMBL")]
 
     # --- STEP 2: STABLE MAPPING ---
     molecule_map = get_molecule_chembl_ids(names_to_search)
 
-    # lookup_map = {str(k).upper(): v for k, v in molecule_map.items()}
-    # source_values = df_drug_gene["source"].astype(str).str.upper()
-    # normalized_ids = source_values.apply(lambda x: x if x.startswith("CHEMBL") else np.nan)
-    # mapped_ids = source_values.map(lookup_map)
-    # df_drug_gene["chembl_id"] = normalized_ids.fillna(mapped_ids)
-    
-    df_drug_gene["chembl_id"] = df_drug_gene["source"].str.split(":").str[1].fillna(df_drug_gene["source"].map(molecule_map))
+    df_drug_gene["chembl_id"] = df_drug_gene["source"].map(
+        lambda x: x if isinstance(x, str) and x.startswith("CHEMBL") else molecule_map.get(str(x).upper(), x)
+    )
 
     df_drug_gene_final = df_drug_gene.copy()
     df_drug_gene_final["source"] = df_drug_gene_final["chembl_id"]
