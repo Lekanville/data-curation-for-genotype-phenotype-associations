@@ -157,7 +157,72 @@ def finalize_features(row):
     return np.concatenate(([1.0], fp))
 
 
-def build_drug_gene_data(unique_gene_node: Path, output_dir: Path) -> Tuple[Path, Path, Path, Path, Path]:
+def fingerprint_to_array(fp):
+    """Return a canonical 1024-bit NumPy fingerprint array for Tanimoto similarity."""
+    if fp is None:
+        return np.zeros(1024, dtype=float)
+
+    if isinstance(fp, np.ndarray):
+        arr = fp.astype(float).reshape(-1)
+    else:
+        try:
+            if pd.isna(fp):
+                return np.zeros(1024, dtype=float)
+            arr = np.asarray(fp, dtype=float).reshape(-1)
+        except Exception:
+            return np.zeros(1024, dtype=float)
+
+    if arr.size < 1024:
+        arr = np.pad(arr, (0, 1024 - arr.size), constant_values=0.0)
+    elif arr.size > 1024:
+        arr = arr[:1024]
+
+    return arr.astype(float)
+
+
+def compute_tanimoto_matrix(fp_matrix):
+    """Compute pairwise Tanimoto similarity for a binary fingerprint matrix."""
+    fp_matrix = np.asarray(fp_matrix, dtype=float)
+    if fp_matrix.ndim == 1:
+        fp_matrix = fp_matrix.reshape(1, -1)
+
+    dot_prod = fp_matrix @ fp_matrix.T
+    sum_fp = fp_matrix.sum(axis=1, keepdims=True)
+    union = sum_fp + sum_fp.T - dot_prod
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        tanimoto = np.divide(dot_prod, union, out=np.zeros_like(dot_prod, dtype=float), where=union != 0)
+    return tanimoto
+
+
+def extract_similarity_edges(df, fp_col='fingerprint_array', threshold=0.7):
+    """Extract undirected drug-drug edges above a Tanimoto similarity threshold."""
+    if df.empty or fp_col not in df.columns:
+        return pd.DataFrame(columns=['source', 'target', 'weight'])
+
+    drug_ids = df['chembl_id'].dropna().astype(str).values
+    fps = np.stack(df[fp_col].dropna().to_numpy())
+
+    if len(drug_ids) == 0 or len(fps) == 0:
+        return pd.DataFrame(columns=['source', 'target', 'weight'])
+
+    sim_matrix = compute_tanimoto_matrix(fps)
+    edges = []
+    n = len(drug_ids)
+    for i in range(n):
+        for j in range(i + 1, n):
+            score = float(sim_matrix[i, j])
+            if score >= threshold:
+                edges.append({
+                    'source': drug_ids[i],
+                    'target': drug_ids[j],
+                    'weight': score,
+                })
+
+    return pd.DataFrame(edges)
+
+
+def build_drug_gene_data(unique_gene_node: Path, output_dir: Path, similarity_threshold: float = 0.7) -> Tuple[Path, Path, Path, Path, Path, Path]:
     """
     Builds the drug-gene edges and gene nodes dataframes.
     Returns the paths to the output files.
@@ -241,7 +306,7 @@ def build_drug_gene_data(unique_gene_node: Path, output_dir: Path) -> Tuple[Path
         # if isinstance(drug_name, str) and drug_name.startswith("CHEMBL"):
         #     chembl_ids_ready.append(drug_name)
     chembl_ids_ready = list(dict.fromkeys(chembl_ids_ready))
-    
+
     names_to_search = [str(d).strip() for d in drugs if not str(normalize_chembl_id(d)).startswith("CHEMBL")]
     # names_to_search = [str(d).strip() for d in drugs if not str(d).startswith("CHEMBL")]
 
@@ -294,7 +359,16 @@ def build_drug_gene_data(unique_gene_node: Path, output_dir: Path) -> Tuple[Path
     all_drug_features['node_feature_vector'] = [
         finalize_features(row) for _, row in all_drug_features.iterrows()
     ]
+    all_drug_features['fingerprint_array'] = all_drug_features['fingerprint'].apply(fingerprint_to_array)
     print(f"✅ Created 1025-bit feature vectors for {len(all_drug_features)} drug nodes.")
+
+    # --STEP 8: Compute drug-drug Tanimoto similarity edges ---
+    drug_drug_similarity_edges = extract_similarity_edges(
+        all_drug_features,
+        fp_col='fingerprint_array',
+        threshold=float(similarity_threshold),
+    )
+    print(f"✅ Generated {len(drug_drug_similarity_edges)} drug-drug similarity edges at threshold {similarity_threshold}.")
 
     # Save the final merged edges to CSV
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -303,25 +377,29 @@ def build_drug_gene_data(unique_gene_node: Path, output_dir: Path) -> Tuple[Path
     df_indications_dir = output_dir / "drug_indications.csv"
     df_smiles_dir = output_dir / "drug_smiles.csv"
     all_drug_features_dir = output_dir / "all_drug_features.csv"
+    drug_drug_similarity_edges_dir = output_dir / "drug_drug_similarity_edges.csv"
 
     df_encoded.to_csv(drug_gene_edges_dir, index=False)
     df_drug_gene_final.to_csv(df_drug_gene_final_dir, index=False)
     df_indications.to_csv(df_indications_dir, index=False)
     df_smiles.to_csv(df_smiles_dir, index=False)
     all_drug_features.to_csv(all_drug_features_dir, index=False)
+    drug_drug_similarity_edges.to_csv(drug_drug_similarity_edges_dir, index=False)
 
-    return drug_gene_edges_dir, df_drug_gene_final_dir, df_indications_dir, df_smiles_dir, all_drug_features_dir
+    return drug_gene_edges_dir, df_drug_gene_final_dir, df_indications_dir, df_smiles_dir, all_drug_features_dir, drug_drug_similarity_edges_dir
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Get drug-gene data")
     parser.add_argument("--unique-gene-node", default="genes_node_dedup_mapped.csv", help="Path to the df_gene_collapsed CSV")
     parser.add_argument("--output-dir", default="output/drug_gene", help="Directory for the gene list outputs")
+    parser.add_argument("--similarity-threshold", type=float, default=0.7, help="Minimum Tanimoto similarity used to create drug-drug edges")
     args = parser.parse_args()
 
     output_paths = build_drug_gene_data(
         unique_gene_node=Path(args.unique_gene_node),
         output_dir=Path(args.output_dir),
+        similarity_threshold=args.similarity_threshold,
     )
 
     print(f"Wrote the initial drug-gene edges data to {output_paths[0]}")
@@ -329,6 +407,7 @@ def main() -> None:
     print(f"Wrote the drug indications data to {output_paths[2]}")
     print(f"Wrote the drug SMILES data to {output_paths[3]}")
     print(f"Wrote the drug feature vectors to {output_paths[4]}")
+    print(f"Wrote the drug-drug similarity edges to {output_paths[5]}")
 
 
 if __name__ == "__main__":

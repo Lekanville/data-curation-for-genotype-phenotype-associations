@@ -141,6 +141,30 @@ gene_phenotype_edges:
   include_other_clinical_phenotypes: false
 ```
 
+### Similarity thresholds and optional top-K pruning
+
+The workflow uses similarity-based edge filtering in multiple places. The most important settings are:
+
+```yaml
+drug_gene_edges:
+  similarity_threshold: 0.7
+  output_dir: 'output/drugs_nodes_and_edges'
+
+phenotype_phenotype_edges_all:
+  similarity_threshold: 0.6
+  limit_top_k: false
+  top_k: null
+  output_dir: 'output/phenotype_mapping'
+```
+
+- `drug_gene_edges.similarity_threshold` sets the minimum similarity score required to keep a drug–gene connection. In this pipeline, the default is `0.7`, which keeps only relatively strong matches.
+- `phenotype_phenotype_edges_all.similarity_threshold` sets the minimum Lin-similarity threshold used when generating phenotype–phenotype edges. The default is `0.6`.
+- `phenotype_phenotype_edges_all.limit_top_k` toggles whether each phenotype is restricted to its strongest neighbors or all similarities are to be retained.
+- `phenotype_phenotype_edges_all.top_k` defines the maximum number of neighbors to retain for each phenotype when `limit_top_k` is `true`.
+- When `limit_top_k` is `false` or `top_k` is `null`, the workflow keeps all phenotype pairs above the similarity threshold instead of pruning to a fixed per-phenotype cap.
+
+This is useful when phenotype similarity graphs become very dense. If you want to limit the graph size while preserving the strongest relationships, enable `limit_top_k` and set `top_k` to a finite value such as `10` or `20`.
+
 ---
 
 ## Running the pipeline
