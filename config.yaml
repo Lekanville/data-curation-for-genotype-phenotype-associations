@@ -77,7 +77,7 @@ gene_pathway:
   output_dir: 'output/gene_pathway'
 
 gene_phenotype_edges:
-  include_other_clinical_phenotypes: false
+  include_other_clinical_phenotypes: true
   output_dir: 'output/gene_phenotype'
 
 phenotype_features:

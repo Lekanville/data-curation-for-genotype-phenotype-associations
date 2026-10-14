@@ -115,7 +115,7 @@ def  build_variant_gene_edges(
 
     # Consolidation with a 'Safety Max' for Regulatory Weights
     df_vg_master_clean = df_vg_master.groupby(['source', 'target']).agg({
-        'Structural_Weight': 'max',   # Correct: Keep the higheststructural impact
+        'Structural_Weight': 'max',   # Correct: Keep the highest structural impact
         'Regulatory_Weight': 'max',   # Correct: Use 'max' to avoid 12.45 vs 0.9 scaling issues
         'Regulatory_Weight_Log': 'max',
         'Edge_Feature_Impact': 'first' 

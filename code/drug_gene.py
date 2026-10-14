@@ -227,25 +227,31 @@ def build_drug_gene_data(unique_gene_node: Path, output_dir: Path) -> Tuple[Path
 
     # The drugs and genes
     df_drug_gene = df_encoded.copy()
-    df_drug_gene["source"] = df_drug_gene["source"].map(normalize_chembl_id)
-    drugs = df_drug_gene["source"].dropna().unique()
+    drugs = df_drug_gene["source"].unique()
+    # df_drug_gene["source"] = df_drug_gene["source"].map(normalize_chembl_id)
+    # drugs = df_drug_gene["source"].dropna().unique()
     # genes = df_drug_gene["target"].unique()
 
     # --- STEP 1: CLEAN PREFIXES ---
     chembl_ids_ready = []
     for drug_name in drugs:
-        if isinstance(drug_name, str) and drug_name.startswith("CHEMBL"):
-            chembl_ids_ready.append(drug_name)
+        normalized = normalize_chembl_id(drug_name)
+        if isinstance(normalized, str) and normalized.startswith("CHEMBL"):
+            chembl_ids_ready.append(normalized)
+        # if isinstance(drug_name, str) and drug_name.startswith("CHEMBL"):
+        #     chembl_ids_ready.append(drug_name)
     chembl_ids_ready = list(dict.fromkeys(chembl_ids_ready))
-
-    names_to_search = [str(d).strip() for d in drugs if not str(d).startswith("CHEMBL")]
+    
+    names_to_search = [str(d).strip() for d in drugs if not str(normalize_chembl_id(d)).startswith("CHEMBL")]
+    # names_to_search = [str(d).strip() for d in drugs if not str(d).startswith("CHEMBL")]
 
     # --- STEP 2: STABLE MAPPING ---
     molecule_map = get_molecule_chembl_ids(names_to_search)
 
-    df_drug_gene["chembl_id"] = df_drug_gene["source"].map(
-        lambda x: x if isinstance(x, str) and x.startswith("CHEMBL") else molecule_map.get(str(x).upper(), x)
-    )
+    df_drug_gene["chembl_id"] = df_drug_gene["source"].str.split(":").str[1].fillna(df_drug_gene["source"].map(molecule_map))
+    # df_drug_gene["chembl_id"] = df_drug_gene["source"].map(
+    #     lambda x: x if isinstance(x, str) and x.startswith("CHEMBL") else molecule_map.get(str(x).upper(), x)
+    # )
 
     df_drug_gene_final = df_drug_gene.copy()
     df_drug_gene_final["source"] = df_drug_gene_final["chembl_id"]
