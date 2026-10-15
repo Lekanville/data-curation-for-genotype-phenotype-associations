@@ -88,7 +88,7 @@ phenotype_phenotype_edges:
   output_dir: 'output/phenotype_features'
 
 drug_gene_edges:
-  similarity_threshold: 0.7
+  drug_similarity_threshold: 0.7
   output_dir: 'output/drugs_nodes_and_edges'
 
 drug_phenotype_edges:
@@ -112,7 +112,7 @@ phenotype_mapping:
   output_dir: 'output/phenotype_mapping'
 
 phenotype_phenotype_edges_all:
-  similarity_threshold: 0.6
+  phenotype_similarity_threshold: 0.6
   limit_top_k: false
   top_k: null
   output_dir: 'output/phenotype_mapping'

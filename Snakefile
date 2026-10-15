@@ -195,8 +195,8 @@ drug_gene_edges_output_dir = drug_gene_edges_cfg.get("output_dir", "output/drug_
 if not Path(drug_gene_edges_output_dir).is_absolute():
     drug_gene_edges_output_dir = str((pipeline_dir / drug_gene_edges_output_dir).resolve())
 
-drug_gene_edges_similarity_threshold = float(drug_gene_edges_cfg.get("similarity_threshold", 0.7))
-drug_gene_edges_similarity_threshold_arg = f"--similarity-threshold {drug_gene_edges_similarity_threshold}"
+drugs_similarity_threshold = float(drug_gene_edges_cfg.get("drug_similarity_threshold", 0.7))
+drug_gene_edges_similarity_threshold_arg = f"--similarity-threshold {drugs_similarity_threshold}"
 
 # 15. Extract configuration values for drug-phenotype edges
 phenotype_code_file = drug_phenotype_edges_cfg.get("phenotype_code_file", "data/phenotypes_prevalence.csv")
@@ -223,7 +223,7 @@ phenotype_phenotype_edges_all_output_dir = phenotype_phenotype_edges_all_cfg.get
 if not Path(phenotype_phenotype_edges_all_output_dir).is_absolute():
     phenotype_phenotype_edges_all_output_dir = str((pipeline_dir / phenotype_phenotype_edges_all_output_dir).resolve())
 
-phenotype_phenotype_edges_all_similarity_threshold = float(phenotype_phenotype_edges_all_cfg.get("similarity_threshold", 0.6))
+phenotype_phenotype_edges_all_similarity_threshold = float(phenotype_phenotype_edges_all_cfg.get("phenotype_similarity_threshold", 0.6))
 phenotype_phenotype_edges_all_limit_top_k = bool(phenotype_phenotype_edges_all_cfg.get("limit_top_k", False))
 phenotype_phenotype_edges_all_top_k_value = phenotype_phenotype_edges_all_cfg.get("top_k")
 
