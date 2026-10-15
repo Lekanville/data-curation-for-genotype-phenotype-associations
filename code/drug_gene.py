@@ -1,4 +1,5 @@
 import io
+import re
 import time
 import requests
 import argparse
@@ -24,6 +25,44 @@ def normalize_chembl_id(value):
     if value.startswith("CHEMBL"):
         return value
     return np.nan
+
+
+def clean_drug_source_name(value):
+    """Remove citation metadata such as '[PMID: 34333981]' while keeping the compound label."""
+    if pd.isna(value):
+        return np.nan
+
+    cleaned = str(value).strip()
+    cleaned = re.sub(r"\s*\[[^\]]+\]\s*$", "", cleaned)
+    cleaned = cleaned.strip()
+    return cleaned if cleaned else np.nan
+
+
+def resolve_drug_chembl_id(value, molecule_map):
+    """Prefer a valid ChEMBL ID when available; otherwise keep a cleaned compound name rather than a PMID fragment."""
+    if pd.isna(value):
+        return np.nan
+
+    raw = str(value).strip()
+    normalized = normalize_chembl_id(raw)
+    if isinstance(normalized, str) and normalized.startswith("CHEMBL"):
+        return normalized
+
+    cleaned = clean_drug_source_name(raw)
+    if isinstance(cleaned, str) and cleaned:
+        cleaned_upper = cleaned.upper()
+        mapped = molecule_map.get(cleaned_upper)
+        if mapped is not None:
+            return mapped
+
+        raw_upper = raw.upper()
+        mapped = molecule_map.get(raw_upper)
+        if mapped is not None:
+            return mapped
+
+        return cleaned
+
+    return raw if raw else np.nan
 
 
 def get_molecule_chembl_ids(names_to_search):
@@ -299,28 +338,31 @@ def build_drug_gene_data(unique_gene_node: Path, output_dir: Path, similarity_th
 
     # --- STEP 1: CLEAN PREFIXES ---
     chembl_ids_ready = []
+    cleaned_drug_names = []
     for drug_name in drugs:
         normalized = normalize_chembl_id(drug_name)
         if isinstance(normalized, str) and normalized.startswith("CHEMBL"):
             chembl_ids_ready.append(normalized)
-        # if isinstance(drug_name, str) and drug_name.startswith("CHEMBL"):
-        #     chembl_ids_ready.append(drug_name)
+        cleaned = clean_drug_source_name(drug_name)
+        if isinstance(cleaned, str) and cleaned:
+            cleaned_drug_names.append(cleaned)
     chembl_ids_ready = list(dict.fromkeys(chembl_ids_ready))
 
-    names_to_search = [str(d).strip() for d in drugs if not str(normalize_chembl_id(d)).startswith("CHEMBL")]
-    # names_to_search = [str(d).strip() for d in drugs if not str(d).startswith("CHEMBL")]
+    names_to_search = []
+    for d in cleaned_drug_names:
+        if not str(normalize_chembl_id(d)).startswith("CHEMBL"):
+            names_to_search.append(d)
+    names_to_search = list(dict.fromkeys(names_to_search))
 
     # --- STEP 2: STABLE MAPPING ---
     molecule_map = get_molecule_chembl_ids(names_to_search)
 
-    df_drug_gene["chembl_id"] = df_drug_gene["source"].str.split(":").str[1].fillna(df_drug_gene["source"].map(molecule_map))
-    # df_drug_gene["chembl_id"] = df_drug_gene["source"].map(
-    #     lambda x: x if isinstance(x, str) and x.startswith("CHEMBL") else molecule_map.get(str(x).upper(), x)
-    # )
+    df_drug_gene["source_clean"] = df_drug_gene["source"].map(clean_drug_source_name)
+    df_drug_gene["chembl_id"] = df_drug_gene["source_clean"].map(lambda x: resolve_drug_chembl_id(x, molecule_map))
 
     df_drug_gene_final = df_drug_gene.copy()
-    df_drug_gene_final["source"] = df_drug_gene_final["chembl_id"]
-    df_drug_gene_final.drop("chembl_id", axis = 1, inplace = True)
+    df_drug_gene_final["source"] = df_drug_gene_final["source_clean"].map(clean_drug_source_name)
+    df_drug_gene_final.drop(columns=["source_clean", "chembl_id"], inplace=True)
     cols = df_drug_gene_final.columns
     updated_cols = [c.replace(" ", "_").replace("/", "_").replace("-", "_") for c in cols]
     df_drug_gene_final.columns = updated_cols
