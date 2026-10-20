@@ -220,6 +220,7 @@ The exact rule names defined in the workflow are:
 - `build_tissue_phenotype_edges`
 - `build_phenotype_mapping`
 - `phenotype_phenotype_edges_cui_all`
+- `phenotype_embedding`
 
 ---
 
@@ -245,6 +246,7 @@ Key outputs include:
 - `output/drug_phenotype_edges/` — drug phenotype edges and side effects
 - `output/tissue_phenotype_edges/` — tissue–phenotype enrichment edges
 - `output/phenotype_mapping/` — mapped phenotype outputs and final CUI-integrated files
+- `output/phenotype_mapping/clinical_outcomes_with_embedding.parquet` — phenotype embeddings generated from the CUI-enriched phenotype table
 
 ---
 

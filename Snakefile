@@ -44,6 +44,8 @@ drug_phenotype_edges_cfg = cfg.get('drug_phenotype_edges', {})
 tissue_phenotype_edges_cfg = cfg.get('tissue_phenotype_edges', {})
 phenotype_mapping_cfg = cfg.get('phenotype_mapping', {})
 phenotype_phenotype_edges_all_cfg = cfg.get('phenotype_phenotype_edges_all', {})
+phenotype_embedding_cfg = cfg.get('phenotype_embedding', {})
+
 
 # 1. Extract configuration values for variants
 variant_traits = variants_cfg.get("traits", [])
@@ -223,6 +225,11 @@ phenotype_phenotype_edges_all_output_dir = phenotype_phenotype_edges_all_cfg.get
 if not Path(phenotype_phenotype_edges_all_output_dir).is_absolute():
     phenotype_phenotype_edges_all_output_dir = str((pipeline_dir / phenotype_phenotype_edges_all_output_dir).resolve())
 
+# 19. Extract configuration values for phenotype embedding
+phenotype_embedding_output_dir = phenotype_embedding_cfg.get("output_dir", "output/phenotype_mapping")
+if not Path(phenotype_embedding_output_dir).is_absolute():
+    phenotype_embedding_output_dir = str((pipeline_dir / phenotype_embedding_output_dir).resolve())
+
 phenotype_phenotype_edges_all_similarity_threshold = float(phenotype_phenotype_edges_all_cfg.get("phenotype_similarity_threshold", 0.6))
 phenotype_phenotype_edges_all_limit_top_k = bool(phenotype_phenotype_edges_all_cfg.get("limit_top_k", False))
 phenotype_phenotype_edges_all_top_k_value = phenotype_phenotype_edges_all_cfg.get("top_k")
@@ -273,6 +280,7 @@ drug_phenotype_edges_script_path = pipeline_dir / "code" / "drug_phenotype.py"
 tissue_phenotype_edges_script_path = pipeline_dir / "code" / "tissue_phenotype.py"
 phenotype_mapping_script_path = pipeline_dir / "code" / "phenotype_combination.py"
 phenotype_phenotype_edges_all_script_path = pipeline_dir / "code" / "phenotype_phenotype_cui.py"
+phenotype_embedding_script_path = pipeline_dir / "code" / "phenotype_embedding.py"
 
 # Define Snakemake rules for the pipeline
 rule variants:
@@ -652,6 +660,7 @@ rule phenotype_phenotype_edges_cui_all:
     input:
         phenotype_features=f"{phenotype_mapping_output_dir}/clinical_outcomes_final_cui.csv",
     output:
+        clinical_outcomes_with_ic=f"{phenotype_mapping_output_dir}/clinical_outcomes_with_ic.csv",
         phenotype_phenotype_edges=f"{phenotype_phenotype_edges_all_output_dir}/phenotype_phenotype_edges_lin_cui_all.csv"
     params:
         script=phenotype_phenotype_edges_all_script_path,
@@ -666,4 +675,19 @@ rule phenotype_phenotype_edges_cui_all:
             --output-dir {params.out_dir} \
             {params.similarity_threshold_arg} \
             {params.limit_top_k_flag} {params.top_k_arg}
+        """
+
+rule phenotype_embedding:
+    input:
+        clinical_outcomes_with_ic=f"{phenotype_mapping_output_dir}/clinical_outcomes_with_ic.csv",
+    output:
+        embedding=f"{phenotype_embedding_output_dir}/clinical_outcomes_with_embedding.parquet"
+    params:
+        script=phenotype_embedding_script_path,
+        out_dir=phenotype_embedding_output_dir
+    shell:
+        """
+        python {params.script} \
+            --clinical-outcomes-with-ic {input.clinical_outcomes_with_ic} \
+            --output-dir {params.out_dir}
         """

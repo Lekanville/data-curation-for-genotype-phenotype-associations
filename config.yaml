@@ -117,3 +117,7 @@ phenotype_phenotype_edges_all:
   top_k: null
   output_dir: 'output/phenotype_mapping'
 
+phenotype_embedding:
+  output_dir: 'output/phenotype_mapping'
+
+
