@@ -113,6 +113,13 @@ def build_phenotype_phenotype_edges(
     
     # Load the phenotype features
     df_phenotype_node = pd.read_csv(phenotype_features)
+    hpo_cui_mapping = (
+        df_phenotype_node[["HPO_ID", "cui"]]
+        .dropna(subset=["HPO_ID", "cui"])
+        .drop_duplicates(subset="HPO_ID")
+        .set_index("HPO_ID")["cui"]
+        .to_dict()
+    )
     target_phenotypes = df_phenotype_node['HPO_ID'].dropna().astype(str).tolist()
 
     #  Load HPO-OBO
@@ -154,14 +161,16 @@ def build_phenotype_phenotype_edges(
     if limit_top_k and top_k is not None and top_k > 0:
         edge_records = _apply_top_k_cap(edge_records, top_k)
 
-    df_phenotype_phenoype_edges = pd.DataFrame(edge_records)
+    df_phenotype_phenotype_edges = pd.DataFrame(edge_records)
+    # Map HPO IDs to CUIs in the edge DataFrame.
+    df_phenotype_phenotype_edges["source_cui"] = df_phenotype_phenotype_edges["source_hpo"].map(hpo_cui_mapping)
+    df_phenotype_phenotype_edges["target_cui"] = df_phenotype_phenotype_edges["target_hpo"].map(hpo_cui_mapping)
 
-    # Save the drug_phenotype (causes) edges data to CSV files
+    # Save the phenotype-phenotype edges data to CSV
     output_dir.mkdir(parents=True, exist_ok=True)
     phenotype_phenotype_edges_dir = output_dir / "phenotype_phenotype_edges_lin_cui_all.csv"
 
-    # Save the phenotye_phenotype edges data to CSV files
-    df_phenotype_phenoype_edges.to_csv(phenotype_phenotype_edges_dir, index=False)
+    df_phenotype_phenotype_edges.to_csv(phenotype_phenotype_edges_dir, index=False)
     return phenotype_phenotype_edges_dir
 
 
