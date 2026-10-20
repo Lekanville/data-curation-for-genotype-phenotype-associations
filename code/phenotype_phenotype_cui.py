@@ -135,6 +135,18 @@ def build_phenotype_phenotype_edges(
             descendants = set(term.subclasses(with_self=True))
             descendant_counts[term.id] = len(descendants)
 
+
+    print("Calculating node-level Information Content (IC)...")
+    ic_mapping = {
+        p: get_intrinsic_ic(p, TOTAL_TERMS, descendant_counts)
+        for p in target_phenotypes
+    }
+
+    # Safely assign it back to your node DataFrame
+    df_phenotype_node["intrinsic_ic"] = (
+        df_phenotype_node["HPO_ID"].astype(str).map(ic_mapping).fillna(0.0)
+    )
+
     pair_scores = {}
 
     # Loop through all pairs to build the flat edge list
@@ -168,6 +180,7 @@ def build_phenotype_phenotype_edges(
 
     # Save the phenotype-phenotype edges data to CSV
     output_dir.mkdir(parents=True, exist_ok=True)
+    df_phenotype_node.to_csv(output_dir / "clinical_outcomes_with_ic.csv", index=False)
     phenotype_phenotype_edges_dir = output_dir / "phenotype_phenotype_edges_lin_cui_all.csv"
 
     df_phenotype_phenotype_edges.to_csv(phenotype_phenotype_edges_dir, index=False)
