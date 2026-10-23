@@ -102,7 +102,8 @@ def build_phenotype_features(
     all_phenotypes_clean_df = df_phenotypes_with_prevalence[cols].drop_duplicates().copy()
     all_phenotypes_clean_df = all_phenotypes_clean_df.rename(columns={"target": "HPO_ID"}).reset_index(drop = True)
 
-    # df_new_phenotypes_from_gp_edges = pd.read_csv(new_phenotypes_from_gp_edges)
+    df_new_phenotypes_from_gp_edges = pd.read_csv(new_phenotypes_from_gp_edges)
+    df_new_phenotypes_from_gp_edges = df_new_phenotypes_from_gp_edges[['HPO_ID', 'Phenotype_Name']]
 
     # # --- Build the Disease-HP Map ---
     # disease_to_hp_map = {}
@@ -153,6 +154,11 @@ def build_phenotype_features(
     # for disease in initial_phenotypes:
     #     phenotype_col_name = f"Is_Primary_{disease}"
     #     all_phenotypes_clean_df[phenotype_col_name] = all_phenotypes_clean_df["HPO_ID"].apply(lambda x: 1 if x in disease_to_hp_map[disease] else 0)
+
+
+
+    all_phenotypes_df = pd.concat([all_phenotypes_clean_df, df_new_phenotypes_from_gp_edges], ignore_index=True)
+    all_phenotypes_clean_df = all_phenotypes_df.drop_duplicates(subset = "HPO_ID", keep = "first")
 
     for disease in initial_phenotypes:
         phenotype_col_name = f"Is_Primary_{disease}"
