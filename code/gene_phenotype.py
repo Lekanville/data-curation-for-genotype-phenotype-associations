@@ -20,7 +20,7 @@ def build_gene_phenotype(
     df_vp_edges = pd.read_csv(variant_phenotype_nodes)
     df_vg_master = pd.read_csv(variant_gene_edges)
 
-    if include_clinical_phenotypes == True:
+    if include_clinical_phenotypes:
         # Get gene-phenotype data form OBO database ans extrace our genes of interest using Entrez IDs and gene symbols
         hpo_purl = "http://purl.obolibrary.org/obo/hp/hpoa/genes_to_phenotype.txt"
         try:
@@ -108,7 +108,7 @@ def build_gene_phenotype(
 
     # 4. Final Integration
     # Clinical edges already have their own HPO target; statistical edges keep the trait-mapped HPO target.
-    if include_clinical_phenotypes == True:
+    if include_clinical_phenotypes:
         df_final_gp = pd.concat([
             df_gp_clinical,
             df_gp_statistical[['source', 'target', 'phenotype_label', 'weight']]
@@ -147,7 +147,7 @@ def main() -> None:
     parser.add_argument("--unique-gene-node", default="vp_edges_refined.csv", help="Path to the variant-phenotype edge CSV")
     parser.add_argument("--variant-phenotype-edges", default="vp_edges_refined.csv", help="Path to the variant-phenotype edges CSV")
     parser.add_argument("--variant-gene-edges", default="df_vg_master_clean.csv", help="Path to the variant-gene edges CSV")
-    parser.add_argument("--include-clinical-phenotypes", default=False, help="Handle to decide theinclusion of clinically related genotype-phenotype")
+    parser.add_argument("--include-clinical-phenotypes", action="store_true", default=False, help="Include curated clinical phenotype relationships from HPO genes_to_phenotype data")
     parser.add_argument("--output-dir", default="output/gene_phenotype", help="Directory for the gene list outputs")
     args = parser.parse_args()
 

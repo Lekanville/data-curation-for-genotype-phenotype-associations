@@ -502,7 +502,7 @@ rule gene_phenotype_edges:
         new_phenotypes=f"{gene_phenotype_output_dir}/new_phenotypes_from_gp_edges.csv",
     params:
         script=gene_phenotype_script_path,
-        include_other_clinical_phenotypes=include_other_clinical_phenotypes,
+        include_clinical_flag="--include-clinical-phenotypes" if include_other_clinical_phenotypes else "",
         out_dir=gene_phenotype_output_dir
     shell:
         """
@@ -510,7 +510,7 @@ rule gene_phenotype_edges:
             --unique-gene-node {input.unique_gene_node} \
             --variant-phenotype-edges {input.variant_phenotype_edges} \
             --variant-gene-edges {input.variant_gene_edges} \
-            --include-clinical-phenotypes {params.include_other_clinical_phenotypes} \
+            {params.include_clinical_flag} \
             --output-dir {params.out_dir}
         """
 
