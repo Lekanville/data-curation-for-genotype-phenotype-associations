@@ -8,7 +8,7 @@ import pandas as pd
 from pathlib import Path
 from typing import Tuple
 from tqdm.auto import tqdm
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from rdkit import Chem
 from rdkit.Chem import rdFingerprintGenerator
 from chembl_webresource_client.new_client import new_client
@@ -311,7 +311,8 @@ def build_drug_gene_data(unique_gene_node: Path, output_dir: Path, similarity_th
     df_drug_gene_edges['weight_log'] = np.log10(df_drug_gene_edges['weight'] + 1)
 
     # Then normalize safely
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
+    scaler = StandardScaler()
     df_drug_gene_edges['weight_norm'] = scaler.fit_transform(df_drug_gene_edges[['weight_log']])
 
     # Consolidate nans into the existing 'other/unknown' class

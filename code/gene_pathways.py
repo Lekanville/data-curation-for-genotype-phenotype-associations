@@ -4,7 +4,7 @@ import argparse
 import pandas as pd
 from pathlib import Path
 from typing import Tuple
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 def get_pathways_for_genes(entrez_ids):
     """
@@ -144,7 +144,8 @@ def build_gene_pathways(
     df_pathway_nodes_raw.set_index('Pathway_ID', inplace=True)
 
     # Scale Gene_Count_In_Pathway
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
+    scaler = StandardScaler()
     df_pathway_nodes_raw['Gene_Count_Normalized'] = scaler.fit_transform(df_pathway_nodes_raw[['Gene_Count_In_Pathway']])
 
     # Clean up the final Node Dataframe

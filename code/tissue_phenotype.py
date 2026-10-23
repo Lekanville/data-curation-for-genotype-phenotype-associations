@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Any, Dict, List
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 # def get_tissue_weights_for_phenotype(row):
     # hpo_to_folder = {
@@ -154,7 +154,8 @@ def tissue_phenotype_edges(df_phenotypes, FUMA_BASE_DIR):
 
     
     # Initialize MinMaxScaler
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
+    scaler = StandardScaler()
 
     # Define a local grouping function to handle the 2D array requirement
     def scale_per_phenotype(group):

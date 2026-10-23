@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Tuple
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 def get_tissue_expression_edges(gencode_ids, tissue_ids):
     """
@@ -72,7 +72,8 @@ def finalize_gene_tissue_edges(df_pivot):
     
     # 3. Apply Log10(TPM + 1)
     edge_list['Weight'] = np.log10(edge_list['TPM'] + 1)
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
+    scaler = StandardScaler()
     edge_list['Weight_Norm'] = scaler.fit_transform(edge_list[['Weight']])
     
     # 4. Pruning: Remove zero or trace expression to keep the graph clean

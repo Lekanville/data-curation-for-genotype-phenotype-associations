@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Tuple
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 def  build_variant_gene_edges(
     unique_gene_node: Path,
@@ -122,7 +122,8 @@ def  build_variant_gene_edges(
     }).reset_index()
 
 
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
+    scaler = StandardScaler()
     df_vg_master_clean['Regulatory_Weight_Norm'] = scaler.fit_transform(df_vg_master_clean[['Regulatory_Weight_Log']])
     # df_vg_master_clean['Regulatory_Weight_Norm'] = scaler.fit_transform(df_vg_master_clean[['Regulatory_Weight']])
     # df_vg_master_clean['Unified_Weight'] = (df_vg_master_clean['Structural_Weight'] + df_vg_master_clean['Regulatory_Weight_Norm']) / 2.0

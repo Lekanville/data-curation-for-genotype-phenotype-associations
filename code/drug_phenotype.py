@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Tuple
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from chembl_webresource_client.new_client import new_client
 
 def build_drug_phenotype_data(
@@ -40,7 +40,8 @@ def build_drug_phenotype_data(
     df_drug_causes_phenotype_edges['llr'] = pd.to_numeric(df_drug_causes_phenotype_edges['llr'], errors='coerce')
     df_drug_causes_phenotype_edges['llr'] = df_drug_causes_phenotype_edges['llr'].fillna(0.0)
     df_drug_causes_phenotype_edges['llr_log'] = np.log10(df_drug_causes_phenotype_edges['llr'] + 1)
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
+    scaler = StandardScaler()
     df_drug_causes_phenotype_edges['llr_norm'] = scaler.fit_transform(df_drug_causes_phenotype_edges[['llr_log']])
 
     # Geting the side effect features by calculating aggregated statistical features (e.g., mean count and llr) aligned with the mapping order
