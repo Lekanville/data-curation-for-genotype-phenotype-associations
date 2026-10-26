@@ -362,7 +362,8 @@ def build_drug_gene_data(unique_gene_node: Path, output_dir: Path, similarity_th
     df_drug_gene["chembl_id"] = df_drug_gene["source_clean"].map(lambda x: resolve_drug_chembl_id(x, molecule_map))
 
     df_drug_gene_final = df_drug_gene.copy()
-    df_drug_gene_final["source"] = df_drug_gene_final["source_clean"].map(clean_drug_source_name)
+    # df_drug_gene_final["source"] = df_drug_gene_final["source_clean"].map(clean_drug_source_name)
+    df_drug_gene_final["source"] = df_drug_gene_final["chembl_id"]
     df_drug_gene_final.drop(columns=["source_clean", "chembl_id"], inplace=True)
     cols = df_drug_gene_final.columns
     updated_cols = [c.replace(" ", "_").replace("/", "_").replace("-", "_") for c in cols]
