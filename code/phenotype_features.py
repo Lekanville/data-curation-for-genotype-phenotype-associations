@@ -159,6 +159,8 @@ def build_phenotype_features(
 
     all_phenotypes_df = pd.concat([all_phenotypes_clean_df, df_new_phenotypes_from_gp_edges], ignore_index=True)
     all_phenotypes_clean_df = all_phenotypes_df.drop_duplicates(subset = "HPO_ID", keep = "first")
+    all_phenotypes_clean_df['phenotype'] = all_phenotypes_clean_df['phenotype'].fillna(all_phenotypes_clean_df['Phenotype_Name'])
+    all_phenotypes_clean_df = all_phenotypes_clean_df.drop(columns=['Phenotype_Name'])
 
     for disease in initial_phenotypes:
         phenotype_col_name = f"Is_Primary_{disease}"
