@@ -168,7 +168,7 @@ def smiles_to_fp_modern(smiles):
 
 
 def finalize_features(row):
-    fingerprint = row.get('fingerprint')
+    fingerprint = row.get("fingerprint_array", row.get("fingerprint"))
 
     if fingerprint is None:
         return np.zeros(1025, dtype=float)
@@ -399,10 +399,10 @@ def build_drug_gene_data(unique_gene_node: Path, output_dir: Path, similarity_th
     all_drug_features = all_drug_features.merge(df_smiles, on='chembl_id', how='left')
 
     # --STEP 7: Create the 1025-dimension feature vector [Indicator + 1024 FP] ---
+    all_drug_features['fingerprint_array'] = all_drug_features['fingerprint'].apply(fingerprint_to_array)
     all_drug_features['node_feature_vector'] = [
         finalize_features(row) for _, row in all_drug_features.iterrows()
     ]
-    all_drug_features['fingerprint_array'] = all_drug_features['fingerprint'].apply(fingerprint_to_array)
     print(f"✅ Created 1025-bit feature vectors for {len(all_drug_features)} drug nodes.")
 
     # --STEP 8: Compute drug-drug Tanimoto similarity edges ---
