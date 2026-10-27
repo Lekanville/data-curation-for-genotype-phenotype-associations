@@ -556,7 +556,8 @@ rule build_drug_gene_edges:
         drug_gene_edges_final=f"{drug_gene_edges_output_dir}/drug_gene_edges_final.csv",
         drug_indications=f"{drug_gene_edges_output_dir}/drug_indications.csv",
         drug_smiles=f"{drug_gene_edges_output_dir}/drug_smiles.csv",
-        drug_features=f"{drug_gene_edges_output_dir}/all_drug_features.csv"
+        drug_features=f"{drug_gene_edges_output_dir}/all_drug_features.csv",
+        drug_drug_similarity_edges=f"{drug_gene_edges_output_dir}/drug_drug_similarity_edges.csv"
     params:
         script=drug_gene_edges_script_path,
         out_dir=drug_gene_edges_output_dir,
