@@ -622,7 +622,7 @@ rule build_phenotype_mapping:
         drug_treats_phenotype=f"{drug_phenotype_edges_output_dir}/drug_treats_phenotype_edges.csv",
         gene_phenotype_edges=f"{gene_phenotype_output_dir}/gene_phenotype_edges.csv",
         ancestry_phenotype_edges=f"{phenotype_features_output_dir}/ancestry_phenotype_edges.csv",
-        phenotype_phenotype_edges_lin=f"{phenotype_phenotype_edges_output_dir}/phenotype_phenotype_edges.csv",
+        # phenotype_phenotype_edges_lin=f"{phenotype_phenotype_edges_output_dir}/phenotype_phenotype_edges.csv",
         phenotype_phenotype_edges_ldsc=phenotype_phenotype_edges_ldsc_file,
         tissue_phenotype_edges=f"{tissue_phenotype_edges_output_dir}/tissue_phenotype_edges.csv",
         variant_phenotype_edges=f"{variant_output_dir_combined}/vp_edges_refined.csv"
@@ -632,7 +632,7 @@ rule build_phenotype_mapping:
         drug_treats_phenotype=f"{phenotype_mapping_output_dir}/drug_treats_phenotype_edges_cui.csv",
         drug_causes_phenotype=f"{phenotype_mapping_output_dir}/drug_causes_phenotype_edges_cui.csv",
         gene_phenotype_edges=f"{phenotype_mapping_output_dir}/gene_phenotype_edges_cui.csv",
-        phenotype_phenotype_edges_lin=f"{phenotype_mapping_output_dir}/phenotype_phenotype_edges_lin_cui.csv",
+        # phenotype_phenotype_edges_lin=f"{phenotype_mapping_output_dir}/phenotype_phenotype_edges_lin_cui.csv",
         phenotype_phenotype_edges_ldsc=f"{phenotype_mapping_output_dir}/phenotype_phenotype_edges_ldsc_cui.csv",
         tissue_phenotype_edges=f"{phenotype_mapping_output_dir}/tissue_phenotype_edges_cui.csv",
         variant_phenotype_edges=f"{phenotype_mapping_output_dir}/variant_phenotype_edges_cui.csv",
@@ -650,12 +650,12 @@ rule build_phenotype_mapping:
             --drug-treats-phenotype {input.drug_treats_phenotype} \
             --ancestry-phenotype-edges {input.ancestry_phenotype_edges} \
             --gene-phenotype-edges {input.gene_phenotype_edges} \
-            --phenotype-phenotype-edges-lin {input.phenotype_phenotype_edges_lin} \
             --phenotype-phenotype-edges-ldsc {input.phenotype_phenotype_edges_ldsc} \
             --tissue-phenotype-edges {input.tissue_phenotype_edges} \
             --variant-phenotype-edges {input.variant_phenotype_edges} \
             --output-dir {params.out_dir}
         """
+        # --phenotype-phenotype-edges-lin {input.phenotype_phenotype_edges_lin} \
 
 rule phenotype_phenotype_edges_cui_all:
     input:
