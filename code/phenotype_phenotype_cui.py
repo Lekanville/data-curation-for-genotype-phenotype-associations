@@ -180,9 +180,10 @@ def build_phenotype_phenotype_edges(
 
     # Save the phenotype-phenotype edges data to CSV
     output_dir.mkdir(parents=True, exist_ok=True)
-    df_phenotype_node.to_csv(output_dir / "clinical_outcomes_with_ic.csv", index=False)
+    clinical_outcomes_with_ic_final_path = output_dir / "clinical_outcomes_with_ic_final.csv"
     phenotype_phenotype_edges_dir = output_dir / "phenotype_phenotype_edges_lin_cui_all.csv"
 
+    df_phenotype_node.to_csv(clinical_outcomes_with_ic_final_path, index=False)
     df_phenotype_phenotype_edges.to_csv(phenotype_phenotype_edges_dir, index=False)
     return phenotype_phenotype_edges_dir
 
