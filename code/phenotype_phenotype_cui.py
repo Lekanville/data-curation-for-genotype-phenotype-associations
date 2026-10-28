@@ -185,7 +185,7 @@ def build_phenotype_phenotype_edges(
 
     df_phenotype_node.to_csv(clinical_outcomes_with_ic_final_path, index=False)
     df_phenotype_phenotype_edges.to_csv(phenotype_phenotype_edges_dir, index=False)
-    return phenotype_phenotype_edges_dir
+    return clinical_outcomes_with_ic_final_path, phenotype_phenotype_edges_dir
 
 
 def main() -> None:
@@ -205,7 +205,8 @@ def main() -> None:
         top_k=args.top_k,
     )
 
-    print(f"Wrote the phenotype-phenotype edges data to {output_path}")
+    print(f"Wrote the clinical outcomes with IC data to {output_path[0]}")
+    print(f"Wrote the phenotype-phenotype edges data to {output_path[1]}")
 
 
 if __name__ == "__main__":
