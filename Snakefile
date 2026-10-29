@@ -533,20 +533,20 @@ rule build_phenotype_features:
             --output-dir {params.out_dir}
         """
 
-rule phenotype_phenotype_edges:
-    input:
-        phenotype_features=f"{phenotype_phenotype_edges_output_dir}/phenotype_features.csv"
-    output:
-        phenotype_phenotype_edges=f"{phenotype_phenotype_edges_output_dir}/phenotype_phenotype_edges.csv"
-    params:
-        script=phenotype_phenotype_script_path,
-        out_dir=phenotype_phenotype_edges_output_dir
-    shell:
-        """
-        python {params.script} \
-            --phenotype-features {input.phenotype_features} \
-            --output-dir {params.out_dir}
-        """
+    # rule phenotype_phenotype_edges:
+    #     input:
+    #         phenotype_features=f"{phenotype_phenotype_edges_output_dir}/phenotype_features.csv"
+    #     output:
+    #         phenotype_phenotype_edges=f"{phenotype_phenotype_edges_output_dir}/phenotype_phenotype_edges.csv"
+    #     params:
+    #         script=phenotype_phenotype_script_path,
+    #         out_dir=phenotype_phenotype_edges_output_dir
+    #     shell:
+    #         """
+    #         python {params.script} \
+    #             --phenotype-features {input.phenotype_features} \
+    #             --output-dir {params.out_dir}
+    #         """
 
 rule build_drug_gene_edges:
     input:
@@ -680,7 +680,7 @@ rule phenotype_phenotype_edges_cui_all:
 
 rule phenotype_embedding:
     input:
-        clinical_outcomes_with_ic=f"{phenotype_mapping_output_dir}/clinical_outcomes_with_ic.csv",
+        clinical_outcomes_with_ic=f"{phenotype_mapping_output_dir}/clinical_outcomes_with_ic_final.csv",
     output:
         embedding=f"{phenotype_embedding_output_dir}/clinical_outcomes_with_embedding.parquet"
     params:

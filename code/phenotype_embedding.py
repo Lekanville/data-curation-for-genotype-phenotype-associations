@@ -152,6 +152,7 @@ def main() -> None:
     args = parser.parse_args()
 
     output_path = build_phenotype_embeddings(args.clinical_outcomes_with_ic, args.output_dir)
+    print(f"Wrote phenotype embeddings to {output_path}")
     print("Clinical outcomes with embedding successfully saved")
 
 if __name__ == "__main__":

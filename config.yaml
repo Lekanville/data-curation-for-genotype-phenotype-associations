@@ -112,9 +112,9 @@ phenotype_mapping:
   output_dir: 'output/phenotype_mapping'
 
 phenotype_phenotype_edges_all:
-  phenotype_similarity_threshold: 0.6
-  limit_top_k: false
-  top_k: null
+  phenotype_similarity_threshold: 0.7
+  limit_top_k: true
+  top_k: 20
   output_dir: 'output/phenotype_mapping'
 
 phenotype_embedding:
