@@ -160,7 +160,7 @@ def main() -> None:
     )
 
     print(f"Wrote the gene-phenotype edges data to {output_paths[0]}")
-    print(f"Wrote (new) phenotypes to {output_paths[1]}.")
+    print(f"Wrote (new) phenotypes to {output_paths[1]}")
 
 
 if __name__ == "__main__":
