@@ -69,12 +69,14 @@ def combined_clinical_outcomes_data(
     #Variant-phenotype edges
     df_variant_phenotype_edges = pd.read_csv(variant_phenotype_edges)
 
-    # Get othe unique phenotypes from the drug-treats-phenotypes data
+    # Get other unique phenotypes from the drug-treats-phenotypes data
     df_other_phenotypes = df_drug_treats_phenotypes.groupby("target").first().reset_index().drop("source", axis = 1)
 
     # Combine the core phenotypes and other phenotypes
     df_core_and_other_phenotypes = pd.merge(df_phenotypes_core, df_other_phenotypes, left_on = "HPO_ID", right_on = "target", how = "outer")
+    # df_core_and_other_phenotypes = df_phenotypes_core.copy()
     # df_core_and_other_phenotypes = df_other_phenotypes.copy()
+
     df_core_and_other_phenotypes["HPO_ID"] = df_core_and_other_phenotypes["HPO_ID"].fillna(df_core_and_other_phenotypes["target"])
     df_core_and_other_phenotypes.drop(columns="target", inplace = True)
 
