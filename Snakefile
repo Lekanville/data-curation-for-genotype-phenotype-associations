@@ -682,7 +682,7 @@ rule phenotype_embedding:
     input:
         clinical_outcomes_with_ic=f"{phenotype_mapping_output_dir}/clinical_outcomes_with_ic_final.csv",
     output:
-        embedding=f"{phenotype_embedding_output_dir}/clinical_outcomes_with_embedding.parquet"
+        embedding=f"{phenotype_embedding_output_dir}/clinical_outcomes_with_embeddings.parquet"
     params:
         script=phenotype_embedding_script_path,
         out_dir=phenotype_embedding_output_dir

@@ -139,7 +139,7 @@ def build_phenotype_embeddings(clinical_outcomes_with_ic: str, output_dir: str) 
     embeddings = embedder.encode(docs, show_progress_bar=True)
     df_full_defs["embedding"] = list(embeddings)
 
-    output_path = os.path.join(output_dir, "clinical_outcomes_with_embedding.parquet")
+    output_path = os.path.join(output_dir, "clinical_outcomes_with_embeddings.parquet")
     df_full_defs.to_parquet(output_path, index=False)
     
 
